@@ -1,0 +1,52 @@
+%%%-------------------------------------------------------------------------%%%
+%%% File        : README                                                    %%% 
+%%% Version     : 0.1/alpha                                                 %%%
+%%% Description : Erlang-VoltDB client API                                  %%%
+%%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
+%%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
+%%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
+%%% Licence     : GPLv3                                                     %%%
+%%% Created     : 17 Apr 2010                                               %%%
+%%% Changed     : 12 May 2010                                               %%% 
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%   THE FUTURE:                                                           %%%
+%%%                                                                         %%%
+%%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for an   %%%
+%%%   Erlang program  to take the place of a  VoltDB client.  Just as the   %%%
+%%%   original Java clients, Erlvolt clients:                               %%%
+%%%                                                                         %%%
+%%%   * can be multiple clients                                             %%%
+%%%   * can make synchronous or asynchronous request                        %%%
+%%%   * asynchronous requests can be fed a call back                        %%%
+%%%                                                                         %%%
+%%%   Erlvolt communicates with the VoltDB server using the binary VoltDB   %%%
+%%%   wire protocol.  The server does not know wether it is  talking to a   %%%
+%%%   Java or an Erlang client.                                             %%%  
+%%%                                                                         %%% 
+%%%   In many cases the  Erlang  program  will itself be a server and the   %%%
+%%%   VoltDB server its database back end.  Implementation of  Erlvolt is   %%%
+%%%   as a library.                                                         %%%
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%    Erlvolt 0.1/alpha - an Erlang-VoltDB client API.                     %%%
+%%%    Copyright (C) 2010 VoltDB, LLC http://www.voltdb.com                 %%%
+%%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
+%%%                                                                         %%%
+%%%    This program is  free software:  you can redistribute it and / or    %%%
+%%%    modify it  under the terms of the  GNU  General Public License as    %%%
+%%%    published  by the Free Software Foundation,  either version  3 of    %%%
+%%%    the License,  or (at your option) any later version.                 %%%
+%%%                                                                         %%%
+%%%    This program is distributed  in the hope  that it will be useful,    %%%
+%%%    but  WITHOUT ANY WARRANTY;  without  even the implied warranty of    %%%
+%%%    MERCHANTABILITY  or  FITNESS FOR  A PARTICULAR PURPOSE.  See  the    %%%
+%%%    GNU General Public License for more details.                         %%%
+%%%                                                                         %%%
+%%%    You should have received a copy of the GNU General Public License    %%%
+%%%    along with this program. If not, see <http://www.gnu.org/licenses/>. %%%
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
+
+run ./test to test conversion functions :-o
