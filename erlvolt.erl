@@ -10,7 +10,7 @@
 %%% Changed     : 12 May 2010                                               %%% 
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%   Usage: see test.erl and sample.erl                                    %%%
+%%%   THE FUTURE:                                                           %%%
 %%%                                                                         %%%
 %%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for an   %%%
 %%%   Erlang program  to take the place of a  VoltDB client.  Just as the   %%%
@@ -298,8 +298,6 @@ erl_integer(<<E:128/signed>>=V) when is_binary(V) ->
 	end.
 
 %%%-decode-stream--------------------------------------------------------------
-
-erl_integer_feed(
 
 
 %*****************************************************************************%
@@ -673,7 +671,7 @@ erl_integer_or_null(V) when is_binary(V) ->
 erl_binary_array(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
 	<<Binary:Count/binary, Rest>> = Stream,
-	{ Binary, Rest }
+	{ Binary, Rest }.
 
 erl_array(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
@@ -684,11 +682,11 @@ erl_array(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
 
 	erl_elements(Type, Count, Stream, Stream).
 
-erl_elements(Type, 0, Rest, Full) ->
+erl_elements(_, 0, _, _) ->
 	
 	[];
 
-erl_elements(Type, Left, Rest, Full) when Left > 0, Rest /= <<>> ->
+erl_elements(Type, Left, Parse, Full) when Left > 0, Parse /= <<>> ->
 
 	{ Element, Rest } = erl_any(Type, Parse),
 
@@ -700,59 +698,60 @@ erl_elements(Type, Left, Rest, Full) when Left > 0, Rest /= <<>> ->
 erl_binary_array_feed(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
 	<<Binary:Count/binary, Rest>> = Stream,
-	{ Binary, Rest }
+	{ Binary, Rest }.
 
 erl_array_feed(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
 	<<Binary:Count/binary, Rest>> = Stream,
-	{ binary_to_list(Binary), Rest }
-
+	{ binary_to_list(Binary), Rest };
 
 % ALL OTHER
 erl_array_feed(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
 
-	{ List, Rest } = erl_elements_feed(Type, [], Count, Stream, Stream).
+	erl_elements_feed(Type, [], Count, Stream, Stream).
 
-erl_elements(Type, Result, 0, Rest, Full) ->
+erl_elements_feed(_, Result, 0, Rest, _) ->
 	
-	{ Result, Rest }
+	{ Result, Rest };
 
-erl_elements(Type, Result, Left, Stream, Full) when Left > 0, Rest /= <<>> ->
+erl_elements_feed(Type, Result, Left, Stream, Full) when Left > 0, Stream /= <<>> ->
 
 	{ Element, Rest } = erl_any(Type, Stream),
-	erl_elements(Type, [ Element | Result ], Left-1, Rest, Full) ].
+	erl_elements_feed(Type, [ Element | Result ], Left-1, Rest, Full).
 
 
 %%%-map-over-read-stream------------------------------------------------arrays-
 
 % These all -> { Element, Rest }
 
-erl_any(VOLT_ARRAY,     Stream) -> erl_array_feed     (Stream). 
-erl_any(VOLT_NULL,      Stream) -> erl_null_feed      (Stream).
-erl_any(VOLT_TINYINT,   Stream) -> erl_tinyint_feed   (Stream).
-erl_any(VOLT_SMALLINT,  Stream) -> erl_smallint_feed  (Stream).
-erl_any(VOLT_INTEGER,   Stream) -> erl_intint_feed    (Stream).
-erl_any(VOLT_BIGINT,    Stream) -> erl_bigint_feed    (Stream).
-erl_any(VOLT_FLOAT,     Stream) -> erl_float_feed     (Stream).
-erl_any(VOLT_STRING,    Stream) -> erl_string_feed    (Stream).
-erl_any(VOLT_TIMESTAMP, Stream) -> erl_timestamp_feed (Stream).
-erl_any(VOLT_DECIMAL,   Stream) -> erl_decimal_feed   (Stream).
+erl_any(?VOLT_ARRAY,     Stream) -> erl_array_feed     (Stream);
+% erl_any(?VOLT_NULL,      Stream) -> erl_null_feed      (Stream);
+erl_any(?VOLT_TINYINT,   Stream) -> erl_tinyint_feed   (Stream);
+erl_any(?VOLT_SMALLINT,  Stream) -> erl_smallint_feed  (Stream);
+erl_any(?VOLT_INTEGER,   Stream) -> erl_intint_feed    (Stream);
+erl_any(?VOLT_BIGINT,    Stream) -> erl_bigint_feed    (Stream);
+erl_any(?VOLT_FLOAT,     Stream) -> erl_float_feed     (Stream);
+%erl_any(?VOLT_STRING,    Stream) -> erl_string_feed    (Stream);
+erl_any(?VOLT_TIMESTAMP, Stream) -> erl_timestamp_feed (Stream);
+erl_any(?VOLT_DECIMAL,   Stream) -> erl_decimal_feed   (Stream).
 
-erl_null_feed     (<<VOLT_NULL,                     Rest>>=Stream) -> { null, Rest }.
-erl_tinyint_feed  (<<Element:?VOLT_TINYINT_TYPE,    Rest>>=Stream) -> { Element, Rest }.
-erl_smallint_feed (<<Element:?VOLT_SMALLINT_TYPE,   Rest>>=Stream) -> { Element, Rest }.
-erl_intint_feed   (<<Element:?VOLT_INTINT_TYPE,     Rest>>=Stream) -> { Element, Rest }.
-erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest>>=Stream) -> { Element, Rest }.
-erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest>>=Stream) -> { erlang_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' right?
-erl_string_feed   (<<?VOLT_STRING_BINARY(Binary),   Rest>>=Stream) -> { erl_string_or_null(Binary), Rest }. % TODO: is '_or_null' right?
-erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest>>=Stream) -> { erl_time(Binary), Rest }.
-erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>=Stream) -> { erlang_number_or_null(Binary), Rest }. % TODO: is '_or_null' right?
+% erl_null_feed     (<<?VOLT_NULL,                     Rest>>) -> { null, Rest }.
+erl_tinyint_feed  (<<Element:?VOLT_TINYINT_TYPE,    Rest>>) -> { Element, Rest }.
+erl_smallint_feed (<<Element:?VOLT_SMALLINT_TYPE,   Rest>>) -> { Element, Rest }.
+erl_intint_feed   (<<Element:?VOLT_INTINT_TYPE,     Rest>>) -> { Element, Rest }.
+erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest>>) -> { Element, Rest }.
+erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest>>) -> { erlang_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' right?
+%erl_string_feed   (<<?VOLT_STRING_BINARY(Binary),   Rest>>) -> { erl_string_or_null(Binary), Rest }. % TODO: is '_or_null' right?
+erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest>>) -> { erl_time(Binary), Rest }.
+erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' right?
 
 % for erl_array_feed see above
 % for erl_volttable_feed see below
 
 %*****************************************************************************%
+%                                                                             %
 %                               VoltTables                                    % 
+%                                                                             %
 %*****************************************************************************%
 %                                                                             %
 %    VoltDB: On the wire a VoltTable is serialized as a header followed by    %
@@ -781,7 +780,7 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>=Stream) -> { erlang_n
 %    * The size of the "Column Types" and "Column Names" arrays** is expec-   %
 %      ted to equal the value stored in "Column Count".                       %
 %    * Column names are limited to the ASCII character set.  Strings in row   %
-%      values are still UTF-8 encoded.                                        % 
+%      values are still UTF-8 encoded. (TODO: clarify Erlang / UTF-16)        % 
 %    * Values with 4-byte (integer) length fields  are signed and are limi-   %
 %      ted to a max of 1 megabyte.                                            %
 %                                                                             %
@@ -807,55 +806,123 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>=Stream) -> { erlang_n
 %    **) NOT VoltDB wire protocol Arrays as described above. Check sample.    %
 %                                                                             %
 %******************************************************************************
+%                                                                             %
+%    Erlang:  There are four  types of binary objects  internally.  Two of    %
+%    them are containers for binary data and two of them are merely refer-    %
+%    ences to a part of a binary.                                             %
+%                                                                             %
+%    The binary containers are called refc binaries  (short for reference-    %
+%    counted binaries) and heap binaries.                                     %
+%                                                                             %
+%    Refc binaries  consist of two parts:  an object stored on the process    %
+%    heap,  called a ProcBin,  and the binary object itself stored outside    %
+%    all process heaps.                                                       %
+%                                                                             %
+%    The  binary object  can be referenced by any number of  ProcBins from    %
+%    any number of processes;  the object contains  a reference counter to    %
+%    keep track  of the number  of  references,  so that it can be removed    %
+%    when the last reference disappears.  All ProcBin objects in a process    %
+%    are part of a  linked list,  so that the  garbage collector  can keep    %
+%    track of them and decrement the reference counters in the binary when    %
+%    a ProcBin disappears. Heap binaries are small binaries, up to 64bytes,   %
+%    that are stored directly on the process heap.They will be copied when    %
+%    the process is garbage collected and when they are sent as a message.    %
+%    They don't require any special handling by the garbage collector.        %
+%                                                                             %
+%    There are  two types of reference objects that can  reference part of    %
+%    a refc binary or heap binary.  They are called sub binaries and match    %
+%    contexts.                                                                %
+%                                                                             %
+%    A sub binary is created by split_binary/2  & when a binary is matched    %
+%    out in a binary pattern.  A  sub binary is a reference into a part of    %
+%    another binary (refc or heap binary, never into a another sub binary).   %
+%    Therefore,  matching out a binary is *relatively* *cheap* because the    % 
+%    actual binary data is *never* *copied*.                                  %
+%                                                                             %
+%    A  match context  is similar to a  sub binary,  but is  optimized for    %
+%    binary matching;  for instance,  it contains  a direct pointer to the    %
+%    binary data.  For each field that is matched out of a binary, the po-    %
+%    sition in the match context will be incremented.  [...]  the compiler    %
+%    tries  to avoid  generating code  that creates a sub binary,  only to    %
+%    shortly afterwards  create  a new match context  and discard the  sub    %
+%    binary.  Instead of creating a sub binary, the match context is kept.    %
+%                                                                             %
+%    The compiler  can only do this optimization  if it can know  for sure    %
+%    that the match context will not be shared. If it would be shared, the    %
+%    functional  properties  (also  called  referential  transparency)  of    %
+%    Erlang would break.                                                      %
+%                                                                             %
+%    --- pg. 168 Erlang/OTP System Documentation 5.7.5 02/22/10 ---           %
+%                                                                             %
+%******************************************************************************
 
 
-%%%-encode--------------------------------------------------------------arrays-
+%%%-encode-----------------------------------------------------------volttable-
 
-%%%-decode--------------------------------------------------------------arrays-
+%%%-decode-----------------------------------------------------------volttable-
 
+erl_table(<<_Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream>>=Bin) 
+	when is_binary(Bin) ->
 
-erl_table(<<Length:32, MetaLength:32, Status:8, ColumnCount:16, Stream>>=Bin) when is_binary(Bin) ->
-
-	NameStringSpace = MetaLength - 3 - ColumnCount,
+	%% Calculate byte count of column names
+	ColumnNamesSpace = MetaLength - 3 - ColumnCount,
 	
+	%% Scan Rest of Meta Data 
 	<<ColumnTypeBinaries:ColumnCount/binary, 
-	  ColumnNamesBinary:NameStringSpace/binary, 
+	  ColumnNamesBinary:ColumnNamesSpace/binary, 
 	  RowCount:32,
 	  RowsBinary/binary>> = Stream,
 	
-	ColumnTypes = binary_to_list(ColumnTypeBinaries),
+	%% Make List of Column Types (integers)
+	_ColumnTypes = binary_to_list(ColumnTypeBinaries),
+
+	%% Make List of Column Names
+	ColumnNames = [ Name || <<Size:32, Name:Size/binary>> <= ColumnNamesBinary ],
+	RowCount = length(ColumnNames),
+	% TODO: cache this globally
 	
-	ColumnNames = [ Name || <<Size:32, Name:Size/binary>> <= ColumnNamesBinary ].
+	%% Scan Rows
+	RowBinaries = [ RowBinary || <<Size:32, RowBinary:Size/binary>> <= RowsBinary ],
+	RowCount = length(RowBinaries).
 	
-	Rows = [ Name || <<Size:32, Name:Size/binary>> <= ColumnNamesBinary ]
-	
-	{ RowCount, Rest3 } = erl_intint_feed(Rest2),
-
-	erl_rows(Type, Count, Stream, Stream).
-
-erl_elements(Type, 0, Rest, Full) ->
-	
-	[];
-
-erl_elements(Type, Left, Rest, Full) when Left > 0, Rest /= <<>> ->
-
-	{ Element, Rest } = erl_any(Type, Parse),
-
-	[ Element | erl_elements(Type, Left-1, Rest, Full)].
-
-
-erl_table_feed(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
-
-	{ List, Rest } = erl_elements_feed(Type, [], Count, Stream, Stream).
-
-erl_elements(Type, Result, 0, Rest, Full) ->
-	
-	{ Result, Rest }
-
-erl_elements(Type, Result, Left, Stream, Full) when Left > 0, Rest /= <<>> ->
-
-	{ Element, Rest } = erl_any(Type, Stream),
-	erl_elements(Type, [ Element | Result ], Left-1, Rest, Full) ].
+	%% Scan Rows
+%	Rows = erl_table_rows(RowCount, ColumnTypes, ColumnNames, RowBinaries).
+%	
+%
+%erl_table_rows(0, _, _) ->
+%
+%	[];
+%
+%erl_table_rows(Count, Types, Parse) ->
+%
+%	{ Element, Rest } = erl_any(Type, Parse),
+%
+%	[ Element | erl_elements(Type, Left-1, Rest, Full)].
+%
+%
+%erl_table_columns(ColumnTypes, 0, Rest, Full) ->
+%	
+%	[];
+%
+%erl_elements(Type, Left, Rest, Full) when Left > 0, Rest /= <<>> ->
+%
+%	{ Element, Rest } = erl_any(Type, Parse),
+%
+%	[ Element | erl_elements(Type, Left-1, Rest, Full)].
+%
+%
+%erl_table_feed(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
+%
+%	{ List, Rest } = erl_elements_feed(Type, [], Count, Stream, Stream).
+%
+%erl_elements(Type, Result, 0, Rest, Full) ->
+%	
+%	{ Result, Rest }
+%
+%erl_elements(Type, Result, Left, Stream, Full) when Left > 0, Rest /= <<>> ->
+%
+%	{ Element, Rest } = erl_any(Type, Stream),
+%	erl_elements(Type, [ Element | Result ], Left-1, Rest, Full) ].
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -867,11 +934,11 @@ erl_elements(Type, Result, Left, Stream, Full) when Left > 0, Rest /= <<>> ->
 %   This is a list of callbacks that are kept to be called on execution and   %
 %   return of results to the client, from the server.                         %
 %                                                                             %
-%-----------------------------------------------------------------------------%
+%******************************************************************************
 %                                                                             %
 %    Test using test3.erl.                                                    %
 %                                                                             %
-%-----------------------------------------------------------------------------%
+%******************************************************************************
 
 create_callback_table() ->
 
@@ -936,5 +1003,7 @@ delete_callback({ callback_id, _} = Id) ->
 %%%----------------------------------------------------------------------------
 banner() ->
 	    io:format("~s ~s - ~s~n",[?LIBRARY, ?VERSION, ?EXPLAIN]).
+
+
 
 

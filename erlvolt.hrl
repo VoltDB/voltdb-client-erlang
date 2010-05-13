@@ -145,13 +145,20 @@
 -define(VOLT_DECIMAL,   22).
 
 
--define(VOLT_TINYINT_TYPE,   8-big-signed).
--define(VOLT_SMALLINT_TYPE, 16-big-signed).
--define(VOLT_INTEGER_TYPE,  32-big-signed).
--define(VOLT_BIGINT_TYPE,   64-big-signed).
+-define(VOLT_TINYINT_TYPE,   8/big-signed).
+-define(VOLT_SMALLINT_TYPE, 16/big-signed).
+-define(VOLT_SHORTINT_TYPE, 16).
+-define(VOLT_INTEGER_TYPE,  32/big-signed).
+-define(VOLT_INTINT_TYPE, 32).
+-define(VOLT_BIGINT_TYPE,   64/big-signed).
 -define(VOLT_FLOAT_TYPE,    128).
 -define(VOLT_TIMESTAMP_TYPE, 11).
 -define(VOLT_DECIMAL_TYPE,   22).
+
+-define(VOLT_FLOAT_BINARY, 32/signed-float).
+-define(VOLT_DECIMAL_BINARY, 128/signed-big).
+-define(VOLT_TIMESTAMP_BINARY, 64/signed-big).
+-define(VOLT_STRING_BINARY, 1/binary).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
