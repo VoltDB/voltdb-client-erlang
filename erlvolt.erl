@@ -48,19 +48,77 @@
 %%%    along with this program. If not, see <http://www.gnu.org/licenses/>. %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
+%%%
+%%%    @doc
+%%%
+%%%    This is the module to import into your client module to access 
+%%%    VoltDB.
+%%%
+%%%    It provides you with functions to communicate with the VoltDB
+%%%    server.
+%%%
+%%%    @end
+%%%
+%%%-------------------------------------------------------------------------%%%
+
 
 -module(erlvolt).
 -include("erlvolt.hrl").
 
--export([help/0]).
--export([volt_string/1]).
-
+-import(lists, [reverse/1]).
 -import(ets).
 
 -define(VERSION, "0.1").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB client API").
 
+-export([   volt_float/1,
+			erlang_float/1,
+			erlang_float_or_atom/1,
+			volt_byte/1,
+			volt_short/1,
+			volt_integer/1,
+			volt_long/1,
+			erl_integer/1,
+			volt_string/1,
+			volt_time/1,
+			volt_time_binary/1,
+			milli_epoch/1,
+			erl_datetime/1,
+			erl_nowtime/1,
+			erl_time/1,
+			erl_unixtime/1,
+			volt_decimal/1,
+			erl_number/1,
+			erl_number_or_null/1,
+			erl_float/1,
+			erl_float_or_null/1,
+			erl_integer_or_null/1,
+			erl_binary_array/1,
+			erl_array/1,
+			erl_elements/4,
+			erl_binary_array_feed/1,
+			erl_array_feed/1,
+			erl_elements_feed/5,
+			erl_any/2,
+			erl_tinyint_feed/1,
+			erl_smallint_feed/1,
+			erl_intint_feed/1,
+			erl_bigint_feed/1,
+			erl_float_feed/1,
+			erl_timestamp_feed/1,
+			erl_decimal_feed/1,
+			erl_table/1,
+			erl_table_rows/3,
+			erl_table_fields/3,
+			create_callback_table/0,
+			create_callback_id/0,
+			add_callback/1,
+			get_callback/1,
+			get_callback_or_nil/1,
+			execute_callback/2,
+			resolve_callback/2,
+			delete_callback/1]).
 
 
 %%%----------------------------------------------------------------------------
@@ -75,8 +133,6 @@
 % run() ->
 %	banner("Testing with real VoltDB server.").
 
--compile(export_all).
--import(lists, [reverse/1]).
 
 
 % test_get_url() ->
@@ -99,6 +155,8 @@
 %%%****************************************************************************
 %%% HELP
 %%%****************************************************************************
+%%% @doc Displays a brief pointer about were to get more help.
+
 help() ->
 	banner(),
     io:format("See sample*.erl and test.erl for more information.~n").
@@ -163,28 +221,29 @@ help() ->
 %%%-encode---------------------------------------------------------------------
 
 
-%%% VoltDB not-a-number wire code (official Java bit pattern)
+%%%----------------------------------------------------------------------------
+%%% @doc VoltDB not-a-number wire code (official Java bit pattern)
 
 volt_float(nan) -> 
 
 	?VOLT_NAN;
 	
 
-%%% VoltDB positive infinity float wire code (official Java bit pattern)
+%%% @doc  VoltDB positive infinity float wire code (official Java bit pattern)
 
 volt_float(positive_infinity) -> 
 
 	?VOLT_POSITIVE_INFINITY;
 
 
-%%% VoltDB negative infinity float wire code (official Java bit pattern)
+%%% @doc  VoltDB negative infinity float wire code (official Java bit pattern)
 
 volt_float(negative_infinity) -> 
 
 	?VOLT_NEGATIVE_INFINITY;
 
 
-%%% Erlang float to VoltDB float wire code
+%%% @doc  Erlang float to VoltDB float wire code
 
 volt_float(E) when is_float(E) -> 
 
@@ -194,14 +253,14 @@ volt_float(E) when is_float(E) ->
 %%%-decode---------------------------------------------------------------------
 	
 
-%%% VoltDB float wire code to Erlang float - throws on NaN/Infinities
+%%% @doc  VoltDB float wire code to Erlang float - throws on NaN/Infinities
 
 erlang_float(<<V:32/signed-float>>) -> 
 	
 	V.
 
 
-%%% VoltDB float wire code to Erlang float - with NaN/Infinities to atoms - any 32bit.
+%%% @doc  VoltDB float wire code to Erlang float - with NaN/Infinities to atoms - any 32bit.
 
 erlang_float_or_atom(<<V:32/signed-float>>) -> 
 
@@ -242,54 +301,54 @@ erlang_float_or_atom(<<_:32>>) ->
 
 %%%-encode------------------------------------------------------------integers-
 
-%%% Erlang integer to VoltDB byte (1B)wire code
+%%% @doc Erlang integer to VoltDB byte (1B)wire code
 volt_byte(E) when is_integer(E), E >= -16#80, E =< 16#7f ->
 	
 	<<E:8>>.
 
-%%% Erlang integer to VoltDB short (2B)wire code
+%%% @doc Erlang integer to VoltDB short (2B)wire code
 volt_short(E) when is_integer(E), E >= -16#8000, E =< 16#7fff ->
 	
 	<<E:16>>.
 
-%%% Erlang integer to VoltDB integer (4B)wire code
+%%% @doc Erlang integer to VoltDB integer (4B)wire code
 volt_integer(E) when is_integer(E), E >= -16#80000000, E =< 16#7fffffff ->
 	
 	<<E:32>>.
 
-%%% Erlang integer to VoltDB long (8B)wire code
+%%% @doc Erlang integer to VoltDB long (8B)wire code
 volt_long(E) when is_integer(E), E >= -16#8000000000000000, E =< 16#7fffffffffffffff ->
 	
 	<<E:64>>.
 
 %%%-decode---------------------------------------------------------------------
 	
-%%% VoltDB empty integer wire code to Erlang integer
+%%% @doc VoltDB empty integer wire code to Erlang integer
 erl_integer(<<>>) ->
 	
 	0;
 
-%%% VoltDB byte wire code to Erlang integer
+%%% @doc VoltDB byte wire code to Erlang integer
 erl_integer(<<E:8/signed>>=V) when is_binary(V), E >= ?VOLT_BYTE_MIN, E =< ?VOLT_BYTE_MAX ->
 	
 	E;
 
-%%% VoltDB short wire code to Erlang integer
+%%% @doc VoltDB short wire code to Erlang integer
 erl_integer(<<E:16/signed>>=V) when is_binary(V), E >= ?VOLT_SHORT_MIN, E =< ?VOLT_SHORT_MAX ->
 	
 	E;
 
-%%% VoltDB integer wire code to Erlang integer
+%%% @doc VoltDB integer wire code to Erlang integer
 erl_integer(<<E:32/signed>>=V) when is_binary(V), E >= ?VOLT_INTEGER_MIN, E =< ?VOLT_INTEGER_MAX ->
 	
 	E;
 
-%%% VoltDB long wire code to Erlang integer
+%%% @doc VoltDB long wire code to Erlang integer
 erl_integer(<<E:64/signed>>=V) when is_binary(V), E >= ?VOLT_LONG_MIN, E =< ?VOLT_LONG_MAX ->
 	
 	E;
 
-%%% VoltDB decimals wire code to Erlang integer
+%%% @doc VoltDB decimals wire code to Erlang integer
 erl_integer(<<E:128/signed>>=V) when is_binary(V) ->
 
 	case E rem ?VOLT_DECIMALS_SCALESHIFT of
@@ -323,25 +382,25 @@ erl_integer(<<E:128/signed>>=V) when is_binary(V) ->
 %%%-encode---------------------------------------------------------------------
 
 
-%%% VoltDB string wire code for NULL
+%%% @doc VoltDB string wire code for NULL
 
 volt_string(null) -> <<-1:?VOLT_STRING_SIZE_BINARY_TYPE>>;
 	
 
-%%% VoltDB string wire code for empty string
+%%% @doc VoltDB string wire code for empty string
 
 volt_string("")   -> <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>;
 volt_string(<<>>) -> <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>;
 	
 
-%%% Erlang string (list) to VoltDB string wire code
+%%% @doc Erlang string (list) to VoltDB string wire code
 
 volt_string(V) when is_list(V) -> 
 
 	volt_string(list_to_binary(V));
 
 
-%%% Erlang string (binary) to VoltDB string wire code
+%%% @doc Erlang string (binary) to VoltDB string wire code
 
 volt_string(V) when is_binary(V), erlang:size(V) =< ?VOLT_SHORT_MAX ->
 	
@@ -349,7 +408,7 @@ volt_string(V) when is_binary(V), erlang:size(V) =< ?VOLT_SHORT_MAX ->
 	<<Size:?VOLT_STRING_SIZE_BINARY_TYPE, V/binary>>.
 
 
-%%% Erlang string (list) to VoltDB string wire code
+%%% ----> @ doc Erlang string (list) to VoltDB string wire code
 
 % TODO: ? erl_string(A) when is_list(A) ->
 %
@@ -363,7 +422,7 @@ volt_string(V) when is_binary(V), erlang:size(V) =< ?VOLT_SHORT_MAX ->
 %	null.
 	
 % VoltDB string code to Erlang binary (list)
-% TODO ? erl_binary(A) when is_binary(A) ->
+% TODO: ? erl_binary(A) when is_binary(A) ->
 %	
 %	null.
 
@@ -403,7 +462,7 @@ volt_string(V) when is_binary(V), erlang:size(V) =< ?VOLT_SHORT_MAX ->
 %%%-encode----------------------------------------------------------------time-
 
 
-%%% Erlang 'now format' time to VoltDB wire code time binary
+%%% @doc Erlang 'now format' time to VoltDB wire code time binary.
 
 volt_time({Mega, Sec, Micro}) when is_integer(Mega), is_integer(Sec), is_integer(Micro) ->
 
@@ -428,7 +487,7 @@ volt_time(UTC) when is_integer(UTC) ->
     volt_time_binary(UTC * 1000).
 
 
-%%% Over/Underrun guards and cast to binary
+%%% @doc Over/Underrun guards and cast to binary
 
 volt_time_binary(MilliEpoch) when MilliEpoch < ?VOLT_TIME_MIN ->
     erlang:error(time_underrun);
@@ -440,7 +499,7 @@ volt_time_binary(MilliEpoch) when is_integer(MilliEpoch) ->
 	?VOLT_TIME_BINARY_TYPE(MilliEpoch).
 
 
-%%% actual calculation 'now' format to VoltDB wire format
+%%% @doc actual calculation 'now' format to VoltDB wire format
 
 milli_epoch({Mega, Sec, Micro}) ->
     Mega * ?BILLION + Sec * 1000 + trunc(Micro / 1000).
@@ -449,7 +508,7 @@ milli_epoch({Mega, Sec, Micro}) ->
 %%%-decode----------------------------------------------------------------time-
 	
 
-%%% VoltDB wire code time /as binary/ to Erlang 'DateTime' format
+%%% @doc VoltDB wire code time /as binary/ to Erlang 'DateTime' format
 
 erl_datetime(?VOLT_TIME_BINARY_TYPE(Int)=V) when is_binary(V) -> 
 
@@ -477,7 +536,7 @@ erl_nowtime(V) when is_integer(V) -> % TODO: make better
 	{Mega, Sec, Micro}.
 
 
-%%% synonyms of erl_nowtime/1.
+%%% @doc synonyms of erl_nowtime/1.
 
 erl_time(?VOLT_TIME_BINARY_TYPE(VInt)=V) when is_binary(V) -> 
 	
@@ -488,13 +547,13 @@ erl_time(V) when is_integer(V) ->
 	erl_nowtime(V).
 
 
-%%% Unix epoch seconds from VoltDB wire code time binary. 
+%%% @doc Unix epoch seconds from VoltDB wire code time binary. 
 
 erl_unixtime(?VOLT_TIME_BINARY_TYPE(VInt)=V) when is_binary(V) -> 
 
 	erl_unixtime(VInt); % -> int() Seconds since 1/1/1970 0:00 GMT;
 
-%%% Unix epoch seconds from VoltDB wire code time long integer.  
+%%% @doc Unix epoch seconds from VoltDB wire code time long integer.  
 
 erl_unixtime(V) when is_integer(V) ->
 	
@@ -559,7 +618,7 @@ erl_unixtime(V) when is_integer(V) ->
 %   TODO: use/introduce an Erlang Decimal type using a Bignum lib.            %
 %                                                                             %
 %   header defines:                                                           %
-%   -define(VOLT_DECIMAL_BINARY_TYPE(E), <<E:128/signed-big>>).               %
+%   -define(VOLT_DECIMAL_BINARY_TYPE(E), E:128/signed-big).               %
 %   -define(VOLT_DECIMAL_MAX,    99999999999999999999999999999999999999).     %
 %   -define(VOLT_DECIMAL_MIN,   -99999999999999999999999999999999999999).     %
 %   -define(VOLT_DECIMAL_NULL, -170141183460469231731687303715884105728).     %
@@ -570,7 +629,7 @@ erl_unixtime(V) when is_integer(V) ->
 % -define(VOLT_DECIMALS_SCALESHIFT, 1000000000000).
 
 
-% Erlang float to VoltDB binary decimals wire code.
+%%% @doc Erlang float to VoltDB binary decimals wire code.
 
 volt_decimal(null) ->
 	
@@ -581,13 +640,13 @@ volt_decimal(E) when (is_integer(E) or is_float(E)), E >= ?VOLT_DECIMAL_MIN,
 
 	D = E * ?VOLT_DECIMALS_SCALESHIFT,
 	T = trunc(D),
-	if D /= T -> throw(loosing_precision); true -> nil end, % will not happen.
+	if D /= T -> throw(loosing_precision); true -> nil end, %%% @doc will not happen.
 	
 	?VOLT_DECIMAL_BINARY_TYPE(T).
 
 %%%-decode-----------------------------------------------------------decimals-
 
-% VoltDB binary decimals wire code to Erlang integer.
+%%% @doc VoltDB binary decimals wire code to Erlang integer.
 
 erl_number(?VOLT_DECIMAL_BINARY_TYPE(?VOLT_DECIMAL_NULL)=V) when is_binary(V) ->
 
@@ -622,7 +681,7 @@ erl_float_or_null(V) when is_binary(V) ->
 	erl_float(V).
 	
 
-% erl_integer(?VOLT_DECIMAL_BINARY_TYPE(E)=V) when is_binary(V) ->
+%%% @doc erl_integer(?VOLT_DECIMAL_BINARY_TYPE(E)=V) when is_binary(V) ->
 %
 %	E div ?VOLT_DECIMALS_SCALESHIFT
 
@@ -667,7 +726,7 @@ erl_integer_or_null(V) when is_binary(V) ->
 
 %%%-decode--------------------------------------------------------------arrays-
 
-% EXCEPTION: TINY INT
+%%% @doc EXCEPTION: TINY INT
 erl_binary_array(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
 	<<Binary:Count/binary, Rest>> = Stream,
@@ -677,7 +736,7 @@ erl_array(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
 	erl_elements(?VOLT_TINYINT, Count, Stream, Stream);
 
-% ALL OTHER
+%%% @doc ALL OTHER
 erl_array(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
 
 	erl_elements(Type, Count, Stream, Stream).
@@ -694,7 +753,7 @@ erl_elements(Type, Left, Parse, Full) when Left > 0, Parse /= <<>> ->
 
 
 
-% EXCEPTION: TINY INT
+%%% @doc EXCEPTION: TINY INT
 erl_binary_array_feed(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 
 	<<Binary:Count/binary, Rest>> = Stream,
@@ -705,7 +764,7 @@ erl_array_feed(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
 	<<Binary:Count/binary, Rest>> = Stream,
 	{ binary_to_list(Binary), Rest };
 
-% ALL OTHER
+%%% @doc ALL OTHER
 erl_array_feed(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
 
 	erl_elements_feed(Type, [], Count, Stream, Stream).
@@ -874,7 +933,8 @@ erl_table(<<_Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream>>=Bin)
 	  RowsBinary/binary>> = Stream,
 	
 	%% Make List of Column Types (integers)
-	_ColumnTypes = binary_to_list(ColumnTypeBinaries),
+	ColumnTypes = binary_to_list(ColumnTypeBinaries),
+	RowCount = ColumnTypes,
 
 	%% Make List of Column Names
 	ColumnNames = [ Name || <<Size:32, Name:Size/binary>> <= ColumnNamesBinary ],
@@ -883,46 +943,27 @@ erl_table(<<_Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream>>=Bin)
 	
 	%% Scan Rows
 	RowBinaries = [ RowBinary || <<Size:32, RowBinary:Size/binary>> <= RowsBinary ],
-	RowCount = length(RowBinaries).
+	RowCount = length(RowBinaries),
 	
 	%% Scan Rows
-%	Rows = erl_table_rows(RowCount, ColumnTypes, ColumnNames, RowBinaries).
-%	
-%
-%erl_table_rows(0, _, _) ->
-%
-%	[];
-%
-%erl_table_rows(Count, Types, Parse) ->
-%
-%	{ Element, Rest } = erl_any(Type, Parse),
-%
-%	[ Element | erl_elements(Type, Left-1, Rest, Full)].
-%
-%
-%erl_table_columns(ColumnTypes, 0, Rest, Full) ->
-%	
-%	[];
-%
-%erl_elements(Type, Left, Rest, Full) when Left > 0, Rest /= <<>> ->
-%
-%	{ Element, Rest } = erl_any(Type, Parse),
-%
-%	[ Element | erl_elements(Type, Left-1, Rest, Full)].
-%
-%
-%erl_table_feed(<<Type:8, Count:16, Stream>>=Bin) when is_binary(Bin) ->
-%
-%	{ List, Rest } = erl_elements_feed(Type, [], Count, Stream, Stream).
-%
-%erl_elements(Type, Result, 0, Rest, Full) ->
-%	
-%	{ Result, Rest }
-%
-%erl_elements(Type, Result, Left, Stream, Full) when Left > 0, Rest /= <<>> ->
-%
-%	{ Element, Rest } = erl_any(Type, Stream),
-%	erl_elements(Type, [ Element | Result ], Left-1, Rest, Full) ].
+	Rows = erl_table_rows(ColumnTypes, ColumnNames, RowBinaries).
+
+	
+erl_table_rows(_, _, []) ->
+
+	[];
+
+erl_table_rows(Types, Names, [ RowBinary | RowBinaryTail ]) ->
+
+	[ erl_table_fields(Types, Names, RowBinary) | erl_table_rows(Types, Names, RowBinaryTail ) ].
+
+
+%% 
+erl_table_fields([ Type | TypesTail ], [ Name | NamesTail ], RowBinaryStream ) ->
+
+	{ Value, RowBinaryRest } = erl_any(Type, RowBinaryStream),
+
+	[ Value | erl_table_fields(TypesTail, NamesTail, RowBinaryRest ) ].
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -950,6 +991,9 @@ create_callback_id() ->
 	{ callback_id, { node(), self(), erlang:now() }}.
 
 	
+% @doc Add a callback function to the callback list
+% @spec add_callback(function()) -> Id::any()
+
 add_callback(Fun) when is_function(Fun, 1) ->
 
 	Id = create_callback_id(),
@@ -1001,6 +1045,7 @@ delete_callback({ callback_id, _} = Id) ->
 %%%----------------------------------------------------------------------------
 %%% Banner
 %%%----------------------------------------------------------------------------
+%%% @doc Prints a banner with library name and version, and a note.
 banner() ->
 	    io:format("~s ~s - ~s~n",[?LIBRARY, ?VERSION, ?EXPLAIN]).
 

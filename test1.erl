@@ -8,24 +8,29 @@
 %%% Created     : 25 Apr 2010                                               %%%
 %%% Changed     : 12 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
-%%%                                                                         %%%
-%%%   This is a unit test program to test the Erlvolt module ervolt.erl.    %%%
-%%%                                                                         %%%
-%%%   Usage:                                                                %%%
-%%%   ------                                                                %%%
-%%%   $ erlc erlvolt.erl; erlc erlunit/erlunit.erl; erlc test1.erl;         %%%
-%%%   $ erl -s test1 run -s init stop -noshell                              %%%
-%%%                                                                         %%%
-%%%   Prerequisite:                                                         %%%
-%%%   -------------                                                         %%%
-%%%   Erlunit in subdirectory erlunit.                                      %%%
-%%%   Get it from: http://github.com/Eonblast/Erlunit/tarball/master        %%%
-%%%                                                                         %%%
-%%%   Notes:                                                                %%%
-%%%   ------                                                                %%%
-%%%   Use of unit test functions and macros is mixed for no good reason.    %%%
-%%%                                                                         %%%
-%%%-------------------------------------------------------------------------%%%
+%%%                                                                         
+%%%   @doc                                                                  
+%%%                                                                         
+%%%   This is a unit test program to test the Erlvolt module ervolt.erl.    
+%%%                                                                         
+%%%   === Usage ===                                                                
+%%%   ```                                                                
+%%%   $ erlc erlvolt.erl; erlc erlunit/erlunit.erl; erlc test1.erl;         
+%%%   $ erl -s test1 run -s init stop -noshell                              
+%%%   '''                                                                         
+%%%   === Prerequisite ===                                                         
+%%%                                                            
+%%%   Erlunit in subdirectory erlunit.                                      
+%%%   Get it from: [http://github.com/Eonblast/Erlunit/tarball/master]        
+%%%                                                                         
+%%%   === Notes ===                                                                
+%%%                                                                   
+%%%   Use of unit test functions and macros in this source is mixed for no
+%%%   good reason.    
+%%%                                                                            
+%%%   @end
+%%%
+%%%----------------------------------------------------------------------------
 
 
 -module(test1).
@@ -39,6 +44,15 @@
 
 -define(BILLION, 1000000000). % for clarity and to prevent typos.
 -define(MILLION, 1000000   ).
+
+%%%----------------------------------------------------------------------------
+%%%
+%%%    run/1
+%%%
+%%%    @doc This is the only function in this package, it runs a unit test on
+%%%    erlvolt.erl.
+%%%
+%%%----------------------------------------------------------------------------
 
 run() ->
 
@@ -660,8 +674,6 @@ run() ->
 	erlunit:suite("Arrays"),
 
  
-
-
 	%%%-encode----------------------------------------------------------arrays-
 
 	%%%-decode----------------------------------------------------------arrays-
