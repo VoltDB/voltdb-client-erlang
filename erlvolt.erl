@@ -10,6 +10,10 @@
 %%% Changed     : 12 May 2010                                               %%% 
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
+%%%   Documentation: doc/index.html                                         %%%
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
 %%%   THE FUTURE:                                                           %%%
 %%%                                                                         %%%
 %%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for an   %%%
@@ -60,7 +64,10 @@
 %%%    @end
 %%%
 %%%-------------------------------------------------------------------------%%%
-
+%%%
+%%%    EDOC 1> edoc:files([erlvolt.erl, test1.erl],[{dir, "doc"}, {new,true}]).
+%%%
+%%%-------------------------------------------------------------------------%%%
 
 -module(erlvolt).
 -include("erlvolt.hrl").
@@ -73,8 +80,8 @@
 -define(EXPLAIN, "Erlang VoltDB client API").
 
 -export([   volt_float/1,
-			erlang_float/1,
-			erlang_float_or_atom/1,
+			erl_float/1,
+			erl_float_or_atom/1,
 			volt_byte/1,
 			volt_short/1,
 			volt_integer/1,
@@ -171,29 +178,34 @@ help() ->
 %*****************************************************************************%
 %                        Floating Point Numbers                               % 
 %*****************************************************************************%
-
+%
+% @doc
+%
 % See erlvolt.hrl for the official Java bit patterns for NaN and Infinities.
 % IEEE 754 does not define 'the' bit pattern for, e.g. NaN. Java does. In any
 % case there are many bit patterns that are NaN, meaning, they don't have a
 % meaningful value as float numbers. But again, Java defines one as 'the' NaN.
 % This probably needs to be used for communicating NaN to a Stored Procedure.
-
-% Wikipedia on IEEE 754: - http://en.wikipedia.org/wiki/IEEE_754-1985
-
+%
+% -- Wikipedia on IEEE 754: [http://en.wikipedia.org/wiki/IEEE_754-1985] --
+%
 % "Only 8-Byte Double types are supported using the byte representation in
 % IEEE 754 "double format." Positive and negative infinity, as well as NaN, are
 % supported on the wire, but not guaranteed to work as SQL values."
-% - pg. 1, VoltDB Client Wire Protocol Version 0, 12/11/09
-
+%
+% -- pg. 1, VoltDB Client Wire Protocol Version 0, 12/11/09 --
+%
 % "When most people talk of IEEE-754, they are referring to  IEEE-754-1985
 % which which encompasses single and double precision floating points, which
 % are both binary FP formats. Erlang's floating point type is the double
-% precision binary." - D. Smith http://www.erlang.org/cgi-bin/ezmlm-cgi/4/47070
-
+% precision binary." 
+%
+% -- D. Smith [http://www.erlang.org/cgi-bin/ezmlm-cgi/4/47070] --
+%
 % "... you can construct invalid floating-point bit patterns [...], and since
 % Erlang doesn't include "not-a-numbers" in the float data type, an exit is
 % signalled. If you expect there to be non-numbers in the binary, you can use
-% 'catch' to catch the exit:
+% 'catch' to catch the exit: ```
 %
 % bytes_to_float(A,B,C,D) ->
 %     <<Float:32/signed-float>> = <<A, B, C, D>>,
@@ -205,45 +217,49 @@ help() ->
 % 	    not_a_number;
 % 	F ->
 % 	    F
-%     end.
+%     end.                                                               '''
 % 
-% - D. Walling, http://www.erlang.org/cgi-bin/ezmlm-cgi/4/3254
-
+% -- D. Walling, http://www.erlang.org/cgi-bin/ezmlm-cgi/4/3254 --
+%
 % The Zuse Z3, the world's first working computer, implemented floating point
 % with infinities and undefined values which were passed through operations. 
 % These were not implemented properly in hardware in any other machine until 
 % the Intel 8087, which was announced in 1980. 
-% - % http://en.wikipedia.org/wiki/IEEE_754-1985
+%
+% -- Wikipedia on IEEE 754: [http://en.wikipedia.org/wiki/IEEE_754-1985] --
 
 % Needs to be defined here because of the erl_integer() defintion for decimals.
 -define(VOLT_DECIMALS_SCALESHIFT, 1000000000000).
+
+% @type wiretype() = binary() 
 
 %%%-encode---------------------------------------------------------------------
 
 
 %%%----------------------------------------------------------------------------
-%%% @doc VoltDB not-a-number wire code (official Java bit pattern)
-
+%%% @ doc VoltDB not-a-number wire code (official Java bit pattern)
+%%%----------------------------------------------------------------------------
+%%% @spec volt_float(float() | nan | positive_infinity | negative_infinity ) -> wiretype()
 volt_float(nan) -> 
 
 	?VOLT_NAN;
 	
 
-%%% @doc  VoltDB positive infinity float wire code (official Java bit pattern)
+%%% @d oc  VoltDB positive infinity float wire code (official Java bit pattern)
 
 volt_float(positive_infinity) -> 
 
 	?VOLT_POSITIVE_INFINITY;
 
 
-%%% @doc  VoltDB negative infinity float wire code (official Java bit pattern)
+%%% @ doc  VoltDB negative infinity float wire code (official Java bit pattern)
 
 volt_float(negative_infinity) -> 
 
 	?VOLT_NEGATIVE_INFINITY;
 
 
-%%% @doc  Erlang float to VoltDB float wire code
+%%% @ doc  Erlang float to VoltDB float wire code
 
 volt_float(E) when is_float(E) -> 
 
@@ -255,30 +271,30 @@ volt_float(E) when is_float(E) ->
 
 %%% @doc  VoltDB float wire code to Erlang float - throws on NaN/Infinities
 
-erlang_float(<<V:32/signed-float>>) -> 
+erl_float(<<V:32/signed-float>>) -> 
 	
 	V.
 
 
 %%% @doc  VoltDB float wire code to Erlang float - with NaN/Infinities to atoms - any 32bit.
 
-erlang_float_or_atom(<<V:32/signed-float>>) -> 
+erl_float_or_atom(<<V:32/signed-float>>) -> 
 
 	V;
 
-erlang_float_or_atom(?VOLT_NAN) ->
+erl_float_or_atom(?VOLT_NAN) ->
 
 	nan;
 
-erlang_float_or_atom(?VOLT_POSITIVE_INFINITY) ->
+erl_float_or_atom(?VOLT_POSITIVE_INFINITY) ->
 
 	positive_infinity;
 
-erlang_float_or_atom(?VOLT_NEGATIVE_INFINITY) ->
+erl_float_or_atom(?VOLT_NEGATIVE_INFINITY) ->
 
 	negative_infinity;
 
-erlang_float_or_atom(<<_:32>>) -> 
+erl_float_or_atom(<<_:32>>) -> 
 
 	nan.
 
@@ -799,7 +815,7 @@ erl_tinyint_feed  (<<Element:?VOLT_TINYINT_TYPE,    Rest>>) -> { Element, Rest }
 erl_smallint_feed (<<Element:?VOLT_SMALLINT_TYPE,   Rest>>) -> { Element, Rest }.
 erl_intint_feed   (<<Element:?VOLT_INTINT_TYPE,     Rest>>) -> { Element, Rest }.
 erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest>>) -> { Element, Rest }.
-erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest>>) -> { erlang_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' right?
+erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest>>) -> { erl_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' right?
 %erl_string_feed   (<<?VOLT_STRING_BINARY(Binary),   Rest>>) -> { erl_string_or_null(Binary), Rest }. % TODO: is '_or_null' right?
 erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest>>) -> { erl_time(Binary), Rest }.
 erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' right?
@@ -920,6 +936,22 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>) -> { erl_number_or_n
 
 %%%-decode-----------------------------------------------------------volttable-
 
+%%%----------------------------------------------------------------------------
+%%% @doc   Parse a VoltTable from VoltDB wire protocol data. The Table is 
+%%%        translated into an Erlang volttable() structure.
+%%%        [ [A], [B], [C] ]   ,    [ [D], [E], [F] ]   ,    [ [G], [H], [I] ]
+%%%
+%%% @type  volttable()    = { volttable, rows(), column_names(), column_types() }.
+%%% @type  rows()         = [row()].
+%%% @type  row()          = [field()].
+%%% @type  column_names() = [name()].
+%%% @type  column_type()  = [volttype()].
+%%% @type  volttype()     = [integer()].
+%%% @type  field()        = [string() | integer() | float() | null ].
+%%% @type  name()         = [atom()].
+%%%
+%%% @spec  erl_table(binary()) -> volttable() 
+
 erl_table(<<_Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream>>=Bin) 
 	when is_binary(Bin) ->
 
@@ -981,18 +1013,28 @@ erl_table_fields([ Type | TypesTail ], [ Name | NamesTail ], RowBinaryStream ) -
 %                                                                             %
 %******************************************************************************
 
+%%%----------------------------------------------------------------------------
+%%% @doc  Create the callback table. Only one is expected to exist. It goes by
+%%%       the registered name of 'callback_table'.
+%%% @spec create_callback_table() -> TableId::atom()
+
 create_callback_table() ->
 
 	ets:new(callback_table, [ set, public, named_table, { keypos, 1 }, { write_concurrency, true  } ] ).
 	
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Create an id as handle to callback functions in the callback list. 
+%%% @spec create_callback_id() -> Id::any()
 
 create_callback_id() ->
 	
 	{ callback_id, { node(), self(), erlang:now() }}.
 
 	
-% @doc Add a callback function to the callback list
-% @spec add_callback(function()) -> Id::any()
+%%%----------------------------------------------------------------------------
+%%% @doc  Add a callback function to the callback list.
+%%% @spec add_callback(function()) -> Id::any()
 
 add_callback(Fun) when is_function(Fun, 1) ->
 
