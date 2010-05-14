@@ -53,47 +53,26 @@
 
 run() ->
 
-	erlunit:start([ nopasses]),
+	erlunit:start([nopasses]),
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%                                                                         %
 	%                               VOLTTABLES                                % 
 	%                                                                         %
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	
-	%%%------------------------------------------------------------------------
-	%%% Subfunctions
-	%%%------------------------------------------------------------------------
-
-	erlunit:suite("VoltTables/Subfunctions"),
-
-	?ERLUNIT_EQUAL(erlvolt:volt_row(["Test"]), <<4:32,"Test">>),
-	
 
 	%*************************************************************************%
     %                                                                         %
 	%                              Simple Cases                               % 
     %                                                                         %
 	%*************************************************************************%
-
-	%*************************************************************************%
-	%                                Encoding                                 % 
-	%*************************************************************************%
-	
-	
-	
-	
-	%*************************************************************************%
-	%                                Decoding                                 % 
-	%*************************************************************************%
-
 	%%%------------------------------------------------------------------------
 	%%% 1: Doc Sample
 	%%%------------------------------------------------------------------------
 
 	VoltTable_Bin_1 =
 	<<
-	0,0,0,31, 			% Total Length     
+	0,0,0,32, 			% Total Length     
 	0,0,0,12,       	% Meta Data Length 
 	0,              	% Status Code
 	0,1,				% Column Count
@@ -115,7 +94,7 @@ run() ->
 
 	VoltTable_Bin_2 =
 	<<
-	0,0,0,65, 			% Total Length     
+	0,0,0,66, 			% Total Length     
 	0,0,0,30,       	% Meta Data Length 
 	0,              	% Status Code
 	0,3,				% Column Count
@@ -146,7 +125,7 @@ run() ->
 
 	VoltTable_Bin_3 =
 	<<
-	0,0,0,55, 			% Total Length     
+	0,0,0,56, 			% Total Length     
 	0,0,0,12,       	% Meta Data Length 
 	0,              	% Status Code
 	0,1,				% Column Count
@@ -175,7 +154,7 @@ run() ->
 
 	VoltTable_Bin_4 =
 	<<
-	0,0,0,121, 			% Total Length     
+	0,0,0,122, 			% Total Length     
 	0,0,0,30,       	% Meta Data Length 
 	0,              	% Status Code
 	0,3,				% Column Count
@@ -216,7 +195,7 @@ run() ->
 
 	VoltTable_Bin_5 =
 	<<
-	0,0,0,138, 			% Total Length     
+	0,0,0,139, 			% Total Length     
 	0,0,0,75,       	% Meta Data Length 
 	0,              	% Status Code
 
@@ -275,7 +254,7 @@ run() ->
 
 	VoltTable_Bin_6 =
 	<<
-	0,0,2,130, 			% Total Length     
+	0,0,2,131, 			% Total Length     
 	0,0,0,75,       	% Meta Data Length 
 	0,              	% Status Code
 
@@ -467,7 +446,7 @@ run() ->
 
 	VoltTable_Bin_7 =
 	<<
-	0,19,18,235,		% Total Length     
+	0,19,18,236,		% Total Length     
 	0,0,0,12,       	% Meta Data Length 
 	0,              	% Status Code
 	0,1,				% Column Count
@@ -490,7 +469,7 @@ run() ->
 
 	VoltTable_Bin_8 =
 	<<
-	0,5,185,13,			% Total Length     
+	0,5,185,14,			% Total Length     
 	0,0,0,30,       	% Meta Data Length 
 	0,              	% Status Code
 	0,3,				% Column Count
@@ -529,7 +508,7 @@ run() ->
 
 	VoltTable_Bin_9 =
 	<<
-	0,0,0,109, 			% Total Length     
+	0,0,0,110, 			% Total Length     
 	0,0,0,30,       	% Meta Data Length 
 	0,              	% Status Code
 	0,3,				% Column Count
@@ -557,11 +536,64 @@ run() ->
 						[?VOLT_STRING,?VOLT_STRING,?VOLT_STRING], 
 						[ { voltrow, [FancyString1,FancyString2,FancyString3] } ] },
 	
+
+
+	%*************************************************************************%
+    %                                                                         %
+	%                             Mounting Tests                              % 
+    %                                                                         %
+	%*************************************************************************%
+
+
+	%*************************************************************************%
+	%                                Encoding                                 % 
+	%*************************************************************************%
+	
 	%%%------------------------------------------------------------------------
-	%%% Mounting Tests
+	%%% Subfunctions
 	%%%------------------------------------------------------------------------
 
-	erlunit:suite("VoltTables/Simple"),
+	erlunit:suite("VoltTables/Encoder Subfunctions"),
+
+	%%%-field-conversion-------------------------------------------------------
+
+	?ERLUNIT_EQUAL(erlvolt:volt_fields([?VOLT_STRING], ["Test"]), [<<4:32,"Test">>]),
+	?ERLUNIT_EQUAL(erlvolt:volt_fields([?VOLT_STRING, ?VOLT_STRING], ["Test", "Test"]), [<<4:32,"Test">>,<<4:32,"Test">>]),
+
+	%%%-row-conversion---------------------------------------------------------
+
+	?ERLUNIT_EQUAL(erlvolt:volt_rows([?VOLT_STRING], [ { voltrow, ["Test"] } ]),
+									 [<<8:32, 4:32, "Test">>]),
+	?ERLUNIT_EQUAL(erlvolt:volt_rows([?VOLT_STRING, ?VOLT_STRING], [ { voltrow, ["Te1", "Test2"] } ]),
+									 [<<16:32, 3:32,"Te1", 5:32,"Test2">>]),
+	?ERLUNIT_EQUAL(erlvolt:volt_rows([?VOLT_STRING], [ { voltrow, ["Test"] }, { voltrow, ["Test"] } ]),
+									 [<<8:32, 4:32,"Test">>,<<8:32, 4:32,"Test">>]),
+	?ERLUNIT_EQUAL(erlvolt:volt_rows([?VOLT_STRING, ?VOLT_STRING], 
+									 [ { voltrow, ["Test1", "Test10"] }, { voltrow, ["Test11", "Test110"] } ]),
+									 [<<19:32, 5:32,"Test1", 6:32,"Test10">>, <<21:32, 6:32,"Test11", 7:32,"Test110">>]),
+	
+	%%%------------------------------------------------------------------------
+	%%% Complete Tables
+	%%%------------------------------------------------------------------------
+	
+	erlunit:suite("VoltTables/Simple Encodes"),
+
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_1), VoltTable_Bin_1),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_2), VoltTable_Bin_2),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_3), VoltTable_Bin_3),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_4), VoltTable_Bin_4),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_5), VoltTable_Bin_5),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_6), VoltTable_Bin_6),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_7), VoltTable_Bin_7),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_8), VoltTable_Bin_8),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_9), VoltTable_Bin_9),
+
+	
+	%*************************************************************************%
+	%                                Decoding                                 % 
+	%*************************************************************************%
+	
+	erlunit:suite("VoltTables/Simple Decodes"),
 
 	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_1), VoltTable_Erl_1),
 	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_2), VoltTable_Erl_2),
@@ -571,8 +603,34 @@ run() ->
 	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_6), VoltTable_Erl_6),
 	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_7), VoltTable_Erl_7),
 	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_8), VoltTable_Erl_8),
-	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_8), VoltTable_Erl_8),
 	?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_9), VoltTable_Erl_9),
+
+	%*************************************************************************%
+	%                                Two-Way                                  % 
+	%*************************************************************************%
+
+	erlunit:suite("VoltTables/Two-Way"),
+
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_1)), VoltTable_Erl_1),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_2)), VoltTable_Erl_2),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_3)), VoltTable_Erl_3),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_4)), VoltTable_Erl_4),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_5)), VoltTable_Erl_5),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_6)), VoltTable_Erl_6),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_7)), VoltTable_Erl_7),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_8)), VoltTable_Erl_8),
+	?ERLUNIT_EQUAL(erlvolt:erl_table(erlvolt:volt_table(VoltTable_Erl_9)), VoltTable_Erl_9),
+
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_1)), VoltTable_Bin_1),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_2)), VoltTable_Bin_2),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_3)), VoltTable_Bin_3),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_4)), VoltTable_Bin_4),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_5)), VoltTable_Bin_5),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_6)), VoltTable_Bin_6),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_7)), VoltTable_Bin_7),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_8)), VoltTable_Bin_8),
+	?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_9)), VoltTable_Bin_9),
+
 
 	%%%------------------------------------------------------------------------
 	%%% Mounting of Tests Done. Execute.
