@@ -53,7 +53,8 @@
 
 run() ->
 
-	erlunit:start([nopasses]),
+	erlunit:start([nopasses, colors]),
+	erlunit:banner("#4: VoltTables"),
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%                                                                         %

@@ -57,6 +57,8 @@
 run() ->
 
 	erlunit:start([colors,nopasses]),
+	erlunit:banner("#1: Basic Types"),
+
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%                                                                         %
@@ -114,7 +116,7 @@ run() ->
 	Delta   = unicode:characters_to_list("∂", utf8),
 	OumlSize = size(<<"ö">>),
 	DeltaSize = size(<<"∂">>),
-	MegaString = string:chars(33, 1001000),
+	MegaString = list_to_binary(string:chars(33, 1000000)),
 
 	erlunit:suite("Strings"),
 	erlunit:equal(erlvolt:volt_string("foo"), <<3:?VOLT_STRING_SIZE_BINARY_TYPE,"foo">>,        "Volt string 'foo'"),
@@ -123,7 +125,7 @@ run() ->
 	erlunit:equal(erlvolt:volt_string(Delta), <<DeltaSize:?VOLT_STRING_SIZE_BINARY_TYPE,"∂">>,  "Volt string '∂'"),
 	erlunit:equal(erlvolt:volt_string(""),    <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>,              "Volt empty string "),
 	erlunit:equal(erlvolt:volt_string(null),  <<-1:?VOLT_STRING_SIZE_BINARY_TYPE>>,             "Volt string NULL"),
-	?ERLUNIT_FAIL(erlvolt:volt_string(MegaString)), %,  <<1001000:?VOLT_STRING_SIZE_BINARY_TYPE, MegaString/binary>>, "Volt 1MB string"),
+	?ERLUNIT_EQUAL_MSG(erlvolt:volt_string(MegaString), <<1000000:?VOLT_STRING_SIZE_BINARY_TYPE, MegaString/binary>>, "Volt 1MB string"),
 
 
 	%*************************************************************************%
@@ -263,56 +265,56 @@ run() ->
 
 	% integer_or_null (same as integer but may return null).
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<-170141183460469231731687303715884105728:128/signed>>), null),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<255,255,255,255,255,255,255,255,255,173,33,210,178,57,217,128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<0,0,0,0,0,0,0,0,0,82,222,45,77,198,38,128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<-170141183460469231731687303715884105728:128/signed>>), null),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<255,255,255,255,255,255,255,255,255,173,33,210,178,57,217,128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<0,0,0,0,0,0,0,0,0,82,222,45,77,198,38,128>>)),
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<1000000000000:128>>),  1  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<1000000000000:128>>),  1.0),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<< 999999999999:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<1100000000000:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<1999999999999:128>>)),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<10000000000000:128>>),  10  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<10000000000000:128>>),  10.0),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<10100000000000:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<10999999999999:128>>)),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<10000000000000000000:128>>),  10000000  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<10000000000000000000:128>>),  10000000.0),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<10000000000000000000:128>>),  1.0e7),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<10000000100000000000:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<1000000000000:128>>),  1  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<1000000000000:128>>),  1.0),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 999999999999:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<1100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<1999999999999:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000:128>>),  10  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000:128>>),  10.0),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<10100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<10999999999999:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000000000:128>>),  10000000  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000000000:128>>),  10000000.0),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000000000:128>>),  1.0e7),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<10000000100000000000:128>>)),
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999998000000000000:128>>),  999999999999998),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999980000000000000:128>>),  9999999999999980),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 99999999999999980000000000000:128>>),  99999999999999980),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999980000000000000:128>>),  999999999999999980),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999910000000000000:128>>),  9999999999999999910),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999998000000000000:128>>),  999999999999998),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999980000000000000:128>>),  9999999999999980),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 99999999999999980000000000000:128>>),  99999999999999980),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999980000000000000:128>>),  999999999999999980),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999910000000000000:128>>),  9999999999999999910),
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999980000000000000:128>>),  9999999999999999980),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999980000000000000:128>>),  9999999999999999980),
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999000000000000:128>>),  999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999000000000000:128>>),  9999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 99999999999999999000000000000:128>>),  99999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999999000000000000:128>>),  999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999999000000000000:128>>),  9999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 99999999999999999999000000000000:128>>),  99999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999999999000000000000:128>>),  999999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999999999000000000000:128>>),  9999999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 99999999999999999999999000000000000:128>>),  99999999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999999999999000000000000:128>>),  999999999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999999999999000000000000:128>>),  9999999999999999999999999),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 99999999999999999999999999000000000000:128>>),  99999999999999999999999999),
-%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999999999999999000000000000:128>>),  999999999999999999999999999),
-%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 9999999999999999999999999999000000000000:128>>),  9999999999999999999999999999),
-%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 99999999999999999999999999999000000000000:128>>),  99999999999999999999999999999),
-%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<< 999999999999999999999999999999000000000000:128>>),  999999999999999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999000000000000:128>>),  999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999000000000000:128>>),  9999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 99999999999999999000000000000:128>>),  99999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999999000000000000:128>>),  999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999999000000000000:128>>),  9999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 99999999999999999999000000000000:128>>),  99999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999999999000000000000:128>>),  999999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999999999000000000000:128>>),  9999999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 99999999999999999999999000000000000:128>>),  99999999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999999999999000000000000:128>>),  999999999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999999999999000000000000:128>>),  9999999999999999999999999),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 99999999999999999999999999000000000000:128>>),  99999999999999999999999999),
+%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999999999999999000000000000:128>>),  999999999999999999999999999),
+%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999999999999999999000000000000:128>>),  9999999999999999999999999999),
+%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 99999999999999999999999999999000000000000:128>>),  99999999999999999999999999999),
+%	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999999999999999999999000000000000:128>>),  999999999999999999999999999999),
 
 
-	% ?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null(<<-99999999999999999999999999999999999999000000000000:128>>), -99999999999999999999999999999999999999),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null( 100000000000000000000000000000000000000)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(-100000000000000000000000000000000000000)),
+	% ?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<-99999999999999999999999999999999999999000000000000:128>>), -99999999999999999999999999999999999999),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal( 100000000000000000000000000000000000000)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(-100000000000000000000000000000000000000)),
 
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,16>>)), 
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null(<<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,20>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,16>>)), 
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,20>>)),
 
 
 
