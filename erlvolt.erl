@@ -7,7 +7,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 17 Apr 2010                                               %%%
-%%% Changed     : 12 May 2010                                               %%% 
+%%% Changed     : 18 May 2010                                               %%% 
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   Documentation: doc/index.html                                         %%%
@@ -77,56 +77,79 @@
 
 -define(VERSION, "0.1").
 -define(LIBRARY, "Erlvolt").
--define(EXPLAIN, "Erlang VoltDB client API").
+-define(EXPLAIN, "Erlang VoltDB Client API").
 
--export([   volt_float/1,
-			erl_float/1,
+-export([ 	add_callback/1,
+			banner/0,
+			banner/1,
+			create_callback_id/0,
+			create_callback_table/0,
+			delete_callback/1,
+			erl_any/2,
+			erl_array_feed/1,
+			erl_array/1,
+			erl_bigint_feed/1,
+			erl_binary_array_feed/1,
+			erl_binary_array/1,
+			erl_datetime/1,
+			erl_decimal_feed/1,
+			erl_elements_feed/5,
+			erl_elements/4,
+			erl_float_feed/1,
 			erl_float_or_atom/1,
+			erl_float_or_null_from_decimal/1,
+			erl_float/1,
+			erl_integer_from_decimal/1,
+			erl_integer_or_null_from_decimal/1,
+			erl_integer/1,
+			erl_intint_feed/1,
+			erl_nowtime/1,
+			erl_number_or_null/1,
+			erl_number/1,
+			erl_smallint_feed/1,
+			erl_string_or_null/1,
+			erl_table/1,
+			erl_time/1,
+			erl_timestamp_feed/1,
+			erl_tinyint_feed/1,
+			erl_unixtime/1,
+			execute_callback/2,
+			get_callback_or_nil/1,
+			get_callback/1,
+  			help/0,
+			milli_epoch/1,
+			resolve_callback/2,
+			volt_array/1, volt_array/2,
 			volt_byte/1,
-			volt_short/1,
+			volt_decimal/1,
+			volt_rows/2,
+			volt_fields/2,
+			volt_float/1,
 			volt_integer/1,
 			volt_long/1,
-			erl_integer/1,
+			volt_short/1,
 			volt_string/1,
-			volt_time/1,
+			volt_table/1,
+			volt_table/2,
 			volt_time_binary/1,
-			milli_epoch/1,
-			erl_datetime/1,
-			erl_nowtime/1,
-			erl_time/1,
-			erl_unixtime/1,
-			volt_decimal/1,
-			erl_number/1,
-			erl_number_or_null/1,
-			erl_float/1,
-			erl_float_or_null/1,
-			erl_integer_or_null/1,
-			erl_binary_array/1,
-			erl_array/1,
-			erl_elements/4,
-			erl_binary_array_feed/1,
-			erl_array_feed/1,
-			erl_elements_feed/5,
-			erl_any/2,
-			erl_tinyint_feed/1,
-			erl_smallint_feed/1,
-			erl_intint_feed/1,
-			erl_bigint_feed/1,
-			erl_float_feed/1,
-			erl_timestamp_feed/1,
-			erl_decimal_feed/1,
-			erl_table/1,
-			erl_table_rows/3,
-			erl_table_fields/3,
-			create_callback_table/0,
-			create_callback_id/0,
-			add_callback/1,
-			get_callback/1,
-			get_callback_or_nil/1,
-			execute_callback/2,
-			resolve_callback/2,
-			delete_callback/1]).
+			volt_time/1,
+			volt_type/1,
+			
+			open/4, 
+			connect/2,
+			login/3,
+			volt_login/2,
+			volt_hash/1,
+			volt_header/0,
+			invoke/4,
+			volt_invoke/3,
+			volt_parameters/1,
+			volt_parameter/2]).
 
+
+
+% TODO: use defines to import those that are exported only for testing only 
+% then, when testing.
 
 %%%----------------------------------------------------------------------------
 %%% Call for 1st test: emulating server communication
@@ -167,6 +190,9 @@
 help() ->
 	banner(),
     io:format("See sample*.erl and test.erl for more information.~n").
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -294,7 +320,7 @@ erl_float_or_atom(?VOLT_NEGATIVE_INFINITY) ->
 
 	negative_infinity;
 
-erl_float_or_atom(<<_:32>>) -> 
+erl_float_or_atom(<<_:32/signed-float>>) -> 
 
 	nan.
 
@@ -387,7 +413,7 @@ erl_integer(<<E:128/signed>>=V) when is_binary(V) ->
 %   presented with a length preceding value of 0.                             %
 %   --- Pg. 2, VoltDB Client Wire Protocol Version 0, 05/05/10 ---            % 
 %                                                                             %
-%   TODO: 1M LIMIT.                                                           %
+%   TODO: 1M LIMIT respecting UTF-8 multibytes                                %
 %                                                                             %
 %   Erlang default is big endian.                                             %
 %                                                                             %
@@ -400,13 +426,13 @@ erl_integer(<<E:128/signed>>=V) when is_binary(V) ->
 
 %%% @doc VoltDB string wire code for NULL
 
-volt_string(null) -> <<-1:?VOLT_STRING_SIZE_BINARY_TYPE>>;
+volt_string(null) -> <<?VOLT_STRING_NULL>>;
 	
 
 %%% @doc VoltDB string wire code for empty string
 
-volt_string("")   -> <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>;
-volt_string(<<>>) -> <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>;
+volt_string("")   -> <<?VOLT_STRING_EMPTY>>;
+volt_string(<<>>) -> <<?VOLT_STRING_EMPTY>>;
 	
 
 %%% @doc Erlang string (list) to VoltDB string wire code
@@ -418,13 +444,17 @@ volt_string(V) when is_list(V) ->
 
 %%% @doc Erlang string (binary) to VoltDB string wire code
 
-volt_string(V) when is_binary(V), erlang:size(V) =< ?VOLT_SHORT_MAX ->
+volt_string(V) when is_binary(V), erlang:size(V) > ?VOLT_MAX_STRING_SIZE ->
+
+	throw(string_to_large);
+	
+volt_string(V) when is_binary(V) ->
 	
 	Size = erlang:size(V),
 	<<Size:?VOLT_STRING_SIZE_BINARY_TYPE, V/binary>>.
 
 
-%%% ----> @ doc Erlang string (list) to VoltDB string wire code
+%%% @doc Erlang string (list) to VoltDB string wire code
 
 % TODO: ? erl_string(A) when is_list(A) ->
 %
@@ -441,6 +471,15 @@ volt_string(V) when is_binary(V), erlang:size(V) =< ?VOLT_SHORT_MAX ->
 % TODO: ? erl_binary(A) when is_binary(A) ->
 %	
 %	null.
+
+% VoltDB string code to Erlang binary (list)
+erl_string_or_null(<<?VOLT_STRING_NULL>>) -> 
+
+	null;
+
+erl_string_or_null(<<?VOLT_STRING_BINARY(String)>>) -> 
+
+	String.
 
 
 %*****************************************************************************%
@@ -684,28 +723,28 @@ erl_number_or_null(V) when is_binary(V) ->
 	erl_number(V).
 	
 
-erl_float(?VOLT_DECIMAL_BINARY_TYPE(E)=V) when is_binary(V) ->
+erl_float_from_decimal(?VOLT_DECIMAL_BINARY_TYPE(E)=V) when is_binary(V) ->
 
 	E / ?VOLT_DECIMALS_SCALESHIFT.
 
-erl_float_or_null(?VOLT_DECIMAL_BINARY_TYPE(?VOLT_DECIMAL_NULL)=V) when is_binary(V) ->
+erl_float_or_null_from_decimal(?VOLT_DECIMAL_BINARY_TYPE(?VOLT_DECIMAL_NULL)=V) when is_binary(V) ->
 
 	null;
 	
-erl_float_or_null(V) when is_binary(V) ->
+erl_float_or_null_from_decimal(V) when is_binary(V) ->
 
-	erl_float(V).
+	erl_float_from_decimal(V).
 	
 
-%%% @doc erl_integer(?VOLT_DECIMAL_BINARY_TYPE(E)=V) when is_binary(V) ->
-%
-%	E div ?VOLT_DECIMALS_SCALESHIFT
+erl_integer_from_decimal(?VOLT_DECIMAL_BINARY_TYPE(E)=V) when is_binary(V) ->
 
-erl_integer_or_null(?VOLT_DECIMAL_BINARY_TYPE(?VOLT_DECIMAL_NULL)=V) when is_binary(V) ->
+	E div ?VOLT_DECIMALS_SCALESHIFT.
+
+erl_integer_or_null_from_decimal(?VOLT_DECIMAL_BINARY_TYPE(?VOLT_DECIMAL_NULL)=V) when is_binary(V) ->
 
 	null;
 	
-erl_integer_or_null(V) when is_binary(V) ->
+erl_integer_or_null_from_decimal(V) when is_binary(V) ->
 
 	erl_integer(V).
 	
@@ -733,14 +772,55 @@ erl_integer_or_null(V) when is_binary(V) ->
 %                                                                             %
 %   --- pg. 4, VoltDB Client Wire Protocol Version 0, 12/11/09 ---            %
 %                                                                             %
-%   TODO: size limit                                                          %
+%   TODO: 1M size limit                                                       %
 %                                                                             %
 %******************************************************************************
 
-
 %%%-encode--------------------------------------------------------------arrays-
 
+%%% @doc Make Erlang List to VoltDB wire binary array, explicit type.
+volt_array({ voltarray, Type, List }) ->
+
+	volt_array(Type, List);
+
+%%% @doc Make Erlang List to VoltDB wire binary array, guessing the type.
+volt_array({ voltarray, List }) ->
+
+	volt_array(List);
+
+volt_array([H|_]=List) ->
+
+	volt_array(volt_type(H), List).
+
+
+%%% @doc Make Erlang List to VoltDB wire binary array, explicit type.
+
+volt_array(Type, { voltarray, List }) ->
+
+	volt_array(Type, List);
+
+volt_array(Type, List) when is_list(List)->
+
+	L = [ volt_any(Type, X) || X <- List ],
+	S = length(L),
+	B = list_to_binary(L),
+	<<Type:8, S:16, B/binary>>.
+	 
+%%% @doc  Guessing types.
+
+volt_type(null)                       -> ?VOLT_NULL;
+volt_type(X) when is_binary(X)        -> ?VOLT_STRING;
+volt_type(X) when is_integer(X)       -> ?VOLT_INTEGER;
+volt_type([H|_]) when is_integer(H)   -> ?VOLT_STRING; % sic
+volt_type(X) when is_list(X)          -> ?VOLT_ARRAY;  % sic
+volt_type(X) when is_float(X)         -> ?VOLT_FLOAT;
+volt_type({{A,B,C},{D,E,F}}) when is_integer(A), is_integer(B), 
+	is_integer(C), is_integer(D), is_integer(E), is_integer(F) -> ?VOLT_TIMESTAMP.
+
+
 %%%-decode--------------------------------------------------------------arrays-
+
+%%% NOTE: Array need not be decoded in regular use.
 
 %%% @doc EXCEPTION: TINY INT
 erl_binary_array(<<?VOLT_TINYINT:8, Count:32, Stream>>=Bin) when is_binary(Bin) ->
@@ -799,29 +879,48 @@ erl_elements_feed(Type, Result, Left, Stream, Full) when Left > 0, Stream /= <<>
 
 % These all -> { Element, Rest }
 
-erl_any(?VOLT_ARRAY,     Stream) -> erl_array_feed     (Stream);
-% erl_any(?VOLT_NULL,      Stream) -> erl_null_feed      (Stream);
+% erl_any(?VOLT_ARRAY,     Stream) -> erl_array_feed     (Stream);
+% TODO: erl_any(?VOLT_NULL,      Stream) -> erl_null_feed      (Stream);
 erl_any(?VOLT_TINYINT,   Stream) -> erl_tinyint_feed   (Stream);
 erl_any(?VOLT_SMALLINT,  Stream) -> erl_smallint_feed  (Stream);
 erl_any(?VOLT_INTEGER,   Stream) -> erl_intint_feed    (Stream);
 erl_any(?VOLT_BIGINT,    Stream) -> erl_bigint_feed    (Stream);
 erl_any(?VOLT_FLOAT,     Stream) -> erl_float_feed     (Stream);
-%erl_any(?VOLT_STRING,    Stream) -> erl_string_feed    (Stream);
+erl_any(?VOLT_STRING,    Stream) -> erl_string_feed    (Stream);
 erl_any(?VOLT_TIMESTAMP, Stream) -> erl_timestamp_feed (Stream);
-erl_any(?VOLT_DECIMAL,   Stream) -> erl_decimal_feed   (Stream).
+erl_any(?VOLT_DECIMAL,   Stream) -> erl_decimal_feed   (Stream);
+erl_any(_,<<>>) -> { nil, [] };
+erl_any(T,_) -> throw({ bad_type, T }).
 
-% erl_null_feed     (<<?VOLT_NULL,                     Rest>>) -> { null, Rest }.
-erl_tinyint_feed  (<<Element:?VOLT_TINYINT_TYPE,    Rest>>) -> { Element, Rest }.
-erl_smallint_feed (<<Element:?VOLT_SMALLINT_TYPE,   Rest>>) -> { Element, Rest }.
-erl_intint_feed   (<<Element:?VOLT_INTINT_TYPE,     Rest>>) -> { Element, Rest }.
-erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest>>) -> { Element, Rest }.
-erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest>>) -> { erl_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' right?
-%erl_string_feed   (<<?VOLT_STRING_BINARY(Binary),   Rest>>) -> { erl_string_or_null(Binary), Rest }. % TODO: is '_or_null' right?
-erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest>>) -> { erl_time(Binary), Rest }.
-erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' right?
+
+% TODO: erl_null_feed     (<<?VOLT_NULL,            Rest/binary>>) -> { null, Rest }.
+erl_tinyint_feed  (<<Element:?VOLT_TINYINT_TYPE,    Rest/binary>>) -> { Element, Rest }.
+erl_smallint_feed (<<Element:?VOLT_SMALLINT_TYPE,   Rest/binary>>) -> { Element, Rest }.
+erl_intint_feed   (<<Element:?VOLT_INTINT_TYPE,     Rest/binary>>) -> { Element, Rest }.
+erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest/binary>>) -> { Element, Rest }.
+erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest/binary>>) -> { erl_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' sensible?
+erl_string_feed   (<<?VOLT_STRING_NULL,             Rest/binary>>) -> { null, Rest }; 
+erl_string_feed   (<<?VOLT_STRING_EMPTY,            Rest/binary>>) -> { <<"">>, Rest }; 
+erl_string_feed   (<<?VOLT_STRING_BINARY(Binary),   Rest/binary>>) -> { Binary, Rest }.
+erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest/binary>>) -> { erl_time(Binary), Rest }.
+erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' sensible?
+% erl_array_feed    (Stream) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' sensible?
 
 % for erl_array_feed see above
 % for erl_volttable_feed see below
+
+% TODO: volt_any(?VOLT_NULL,      Value) -> 
+volt_any(?VOLT_TINYINT,   Value) -> <<Value:?VOLT_TINYINT_TYPE>>;
+volt_any(?VOLT_SMALLINT,  Value) -> <<Value:?VOLT_SMALLINT_TYPE>>;
+volt_any(?VOLT_INTEGER,   Value) -> <<Value:?VOLT_INTINT_TYPE>>;
+volt_any(?VOLT_BIGINT,    Value) -> <<Value:?VOLT_BIGINT_TYPE>>;
+volt_any(?VOLT_FLOAT,     Value) -> <<Value:?VOLT_FLOAT_TYPE>>;
+volt_any(?VOLT_STRING,    Value) -> volt_string(Value);
+volt_any(?VOLT_TIMESTAMP, Value) -> volt_time(Value);
+volt_any(?VOLT_DECIMAL,   Value) -> volt_decimal(Value);
+volt_any(?VOLT_ARRAY,     Value) -> volt_array(Value); 
+volt_any(T,_) -> throw({ bad_type, T }).
+
 
 %*****************************************************************************%
 %                                                                             %
@@ -931,16 +1030,6 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>) -> { erl_number_or_n
 %                                                                             %
 %******************************************************************************
 
-
-%%%-encode-----------------------------------------------------------volttable-
-
-%%%-decode-----------------------------------------------------------volttable-
-
-%%%----------------------------------------------------------------------------
-%%% @doc   Parse a VoltTable from VoltDB wire protocol data. The Table is 
-%%%        translated into an Erlang volttable() structure.
-%%%        [ [A], [B], [C] ]   ,    [ [D], [E], [F] ]   ,    [ [G], [H], [I] ]
-%%%
 %%% @type  volttable()    = { volttable, rows(), column_names(), column_types() }.
 %%% @type  rows()         = [row()].
 %%% @type  row()          = [field()].
@@ -952,8 +1041,83 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest>>) -> { erl_number_or_n
 %%%
 %%% @spec  erl_table(binary()) -> volttable() 
 
-erl_table(<<_Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream>>=Bin) 
+
+%%%-encode-----------------------------------------------------------volttable-
+
+volt_table({ volttable, ColumnNames, ColumnTypes, Rows }) ->
+	
+	volt_table({ volttable, ColumnNames, ColumnTypes, Rows }, 0).
+
+volt_table({ volttable, ColumnNames, ColumnTypes, Rows }, StatusCode)
+
+	when is_list(ColumnNames), is_list(ColumnTypes), is_list(Rows), 
+	     StatusCode >= -128, StatusCode =< 127 ->
+
+	ColumnCount = length(ColumnNames),
+	ColumnCount = length(ColumnTypes),
+	RowCount    = length(Rows),
+	
+	ColumnTypesBin = list_to_binary(ColumnTypes),
+	
+	ColumnNamesBin = << <<(size(Name)):?VOLT_STRING_SIZE_BINARY_TYPE, Name/binary>> || Name <- ColumnNames >>,
+
+	MetaBin = <<StatusCode:8, ColumnCount:16, ColumnTypesBin/binary, ColumnNamesBin/binary>>,
+	
+	RowsBin = list_to_binary(volt_rows(ColumnTypes, Rows)),
+	
+	MetaSize  = size(MetaBin),                     % From byte #8 to excl RowCount
+	TotalSize = 4 + MetaSize + 4 + size(RowsBin),  % From byte #4 (sic) to end. 
+												   % First 4 for MetaSize Value itself.
+	<< TotalSize:32, 
+	   MetaSize:32, 
+	   MetaBin/binary, 
+	   RowCount:32,
+	   RowsBin/binary >>.
+	   
+volt_rows(_, []) -> [];
+
+volt_rows(ColumnTypes, [ { voltrow, Fields } | Rows ]) ->
+
+	Row = list_to_binary(volt_fields(ColumnTypes, Fields)),
+	Size = size(Row),
+	[ <<Size:32, Row/binary>>  | volt_rows(ColumnTypes, Rows) ].
+
+
+%%%----------------------------------------------------------------------------
+%% @doc Converting two lists (Types, Contents) into a list of voltdb wire encoded binaries.
+%% E.g.  [?VOLT_STRING , ?VOLT_STRING], ["Test", "Test"] ->  [<<4:32,"Test">>,<<4:32,"Test">>]
+%% This returns a list of binaries. Converting it to one binary in the end is thought to be faster.	
+
+volt_fields([], []) -> [];
+
+volt_fields([Type | Types], [Value | Values]) ->
+
+	% over defense
+	try true = length(Types) == length(Values) catch error:{badmatch,_} -> throw(parameter_list_length_mismatch) end,
+
+	[ volt_any(Type, Value) | volt_fields(Types, Values)].
+
+
+
+%%%-decode-----------------------------------------------------------volttable-
+
+%%%----------------------------------------------------------------------------
+%%% @doc   Parse a VoltTable from VoltDB wire protocol data. The Table is 
+%%%        translated into an Erlang volttable() structure. E.g.:
+%%%
+%%%	       { volttable, [<<"Test">>,<<"Test">>,<<"Test">>], 
+%%%						[?VOLT_BIGINT,?VOLT_BIGINT,?VOLT_BIGINT], 
+%%%
+%%%						[ { voltrow, [5,5,5] },
+%%%						  { voltrow, [5,5,5] },
+%%%						  { voltrow, [5,5,5] } ] },
+
+erl_table(<<Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream/binary>>=Bin) 
 	when is_binary(Bin) ->
+
+	%%
+	try Length = size(Bin) - 4 
+	catch error:{badmatch,_} -> throw({bad_total_size, Length, size(Bin) - 4}) end,
 
 	%% Calculate byte count of column names
 	ColumnNamesSpace = MetaLength - 3 - ColumnCount,
@@ -966,36 +1130,301 @@ erl_table(<<_Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream>>=Bin)
 	
 	%% Make List of Column Types (integers)
 	ColumnTypes = binary_to_list(ColumnTypeBinaries),
-	RowCount = ColumnTypes,
+	try ColumnCount = length(ColumnTypes) catch error:{badmatch,_} -> throw({bad_columncount_with_types, ColumnCount, length(ColumnTypes)}) end,
 
 	%% Make List of Column Names
 	ColumnNames = [ Name || <<Size:32, Name:Size/binary>> <= ColumnNamesBinary ],
-	RowCount = length(ColumnNames),
+	try ColumnCount = length(ColumnNames) catch error:{badmatch,_} -> throw({bad_columncount_with_names, ColumnCount, length(ColumnNames)}) end,
 	% TODO: cache this globally
 	
 	%% Scan Rows
 	RowBinaries = [ RowBinary || <<Size:32, RowBinary:Size/binary>> <= RowsBinary ],
-	RowCount = length(RowBinaries),
+	try RowCount = length(RowBinaries) catch error:{badmatch,_} -> throw({bad_rowcount, RowCount, length(RowBinaries)}) end,
 	
 	%% Scan Rows
-	Rows = erl_table_rows(ColumnTypes, ColumnNames, RowBinaries).
+	Rows = try erl_table_rows(ColumnTypes, RowBinaries) 
+	       catch error:E -> throw({row_parse_failure,E}) 
+	       end,
+	
+	{ volttable, ColumnNames, ColumnTypes, Rows }.
 
 	
-erl_table_rows(_, _, []) ->
+erl_table_rows(_, []) ->
 
 	[];
 
-erl_table_rows(Types, Names, [ RowBinary | RowBinaryTail ]) ->
+erl_table_rows(Types, [ RowBinary | RowBinaryTail ]) ->
 
-	[ erl_table_fields(Types, Names, RowBinary) | erl_table_rows(Types, Names, RowBinaryTail ) ].
+	[ { voltrow, 
+		try
+		 % debug: io:format("~n~p~n", [RowBinary]),
+		 erl_table_fields(Types, RowBinary) 
+		catch error:E -> throw({field_parse_failure, E, erlang:get_stacktrace()})  
+		end
+	 } |
+		
+		erl_table_rows(Types, RowBinaryTail ) ].
 
+ 
+erl_table_fields([], <<>>) ->
 
-%% 
-erl_table_fields([ Type | TypesTail ], [ Name | NamesTail ], RowBinaryStream ) ->
+	[];
+
+erl_table_fields([ Type | TypesTail ], RowBinaryStream ) ->
+
+	% debug: io:format("~n~p~n", [RowBinaryStream]),
 
 	{ Value, RowBinaryRest } = erl_any(Type, RowBinaryStream),
 
-	[ Value | erl_table_fields(TypesTail, NamesTail, RowBinaryRest ) ].
+	[ Value | erl_table_fields(TypesTail, RowBinaryRest ) ].
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                             %
+%                        SERVER-CLIENT COMMUNICATION                          % 
+%                                                                             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%*****************************************************************************%
+%                                                                             %
+%                           Establish Connection                              % 
+%                                                                             %
+%*****************************************************************************%
+%%%----------------------------------------------------------------------------
+%%% @doc  Client opens connection and logs in to the VoltDB server cluster.
+
+open(Host, Port, Login, Password) ->
+
+	try
+	    Socket = connect(Host, Port),
+    
+    	ok = login(Socket, Login, Password),
+    	
+    	Socket
+
+    catch
+    
+    	Type:Reason -> throw({open_failed, Type, Reason})
+    
+    end.
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Client TCP/IP connect to the VoltDB server cluster.
+
+connect(Host, Port) ->
+
+    {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {packet, 4}]),
+
+	Socket.
+
+
+%*****************************************************************************%
+%                                                                             %
+%                         Invoke Stored Procedure                             % 
+%                                                                             %
+%*****************************************************************************%
+%
+%	 @doc
+%
+%	 A request to invoke a stored procedure identifies the procedure to in-
+%	 voke by name, the parameters to pass to the procedure, and an 8 byte
+%	 piece of client data that will be returned with the response to the
+%	 invocation request. A client does not need to wait for a response to 
+%	 a request to continue sending requests. The server will use TCP back-
+%	 pressure to avoid running out of memory when a client sends too many 
+%	 invocations for the server to handle. 
+%
+%    --------------------------------------------------------------------+    
+%    |                    ... Message Header ...                         |    
+%    ---------------------------------------------------------------------    
+%    + Procedure name:        String                                     |    
+%    + Client data:           Binary                                     |    
+%    + Parameters:            Parameter Set                              |    
+%    ---------------------------------------------------------------------    
+%                                                                             
+%    --- pg. 13, VoltDB Client Wire Protocol Version 0, 05/05/10 ---  
+%                                                                             
+%	 @end                                                                             
+%                                                                             
+%*****************************************************************************%
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Client sends Stored Procedure call to the VoltDB server cluster.
+
+invoke(Socket, ClientData, ProcedureName, Parameters) ->
+
+    gen_tcp:send(Socket, volt_invoke(ClientData, ProcedureName, Parameters)).
+    
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Make VoltDB wire binary for login message from name and password.
+	
+volt_invoke(ClientData, ProcedureName, Parameters) when is_binary(ClientData) ->
+
+	H  = volt_header(),           % all return binaries
+	N  = volt_string(ProcedureName),
+	P  = volt_parameters(Parameters),
+	
+	<<H/binary, ClientData/binary, N/binary, P/binary>>.	
+
+
+%*****************************************************************************%
+%                                                                             %
+%                             Client Parameters                               % 
+%                                                                             %
+%*****************************************************************************%
+%
+%	 @doc
+%
+%	 A parameter set contains all the parameters to be passed to a stored
+%	 procedure and it is one of the structures bundled inside a stored pro-
+%	 cedure invocation request. The first value of a parameter set is a
+%	 Short indicating the number of parameters that follow. The following
+%	 values are a series of <wire type, value pairs>. Each value is pre-
+%	 ceded by its wire type represented as a Byte. NULL is a valid wire
+%	 type and value and it is not followed by any additional value. 
+%	 	 
+%	 Arrays are preceded by the wire type -99 and the array value contains
+%	 the type of the array elements as well as the number of elements (see
+%	 Array type). A parameter set cannot contain a nested parameter set
+%	 (there is no wire type for parameter set). 
+%	 
+%	 
+%	 Parameter Set	 
+%	 
+%    ---------------------------------------------------------------------    
+%    + Parameter Count:       Short     2                                |    
+%    --------------------------------------------------------------------+    
+%    |                    ... Parameters ...                             |    
+%    ---------------------------------------------------------------------    
+%                                                                             
+%                                                                             
+%	 Parameter                                                                             
+%                                                                             
+%    ---------------------------------------------------------------------    
+%    + Parameter Type:       Byte       1                                |    
+%    --------------------------------------------------------------------+    
+%    + Parameter [Value]:    Binary                                      |    
+%    --------------------------------------------------------------------+    
+%                                                                             
+%    --- pg. 7, VoltDB Client Wire Protocol Version 0, 05/05/10 ---  
+%                                                                             
+%	 @end                                                                             
+%                                                                             
+%*****************************************************************************%
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Encode parameters for Stored Procedure Calls
+
+volt_parameters({ voltparameters, Parameters }) when is_list(Parameters) ->
+
+	volt_parameters(Parameters);
+
+volt_parameters(Parameters) when is_list(Parameters) ->
+
+	[ volt_parameter(Type, Value) || { Type, Value } <- Parameters ].
+	
+
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Encode, with type, one parameter for Stored Procedure Calls
+
+volt_parameter(Type, Value) ->
+
+	V = volt_any(Type, Value),
+	
+	<<Type:8, V/binary>>.
+
+
+%*****************************************************************************%
+%                                                                             %
+%                             Message Header                                  % 
+%                                                                             %
+%*****************************************************************************%
+%
+%    @doc
+%
+%    ---------------------------------------------------------------------    
+%    + Message Length:        Integer 4                                  |    
+%    + Protocol Version:      Byte    1                                  |    
+%    ---------------------------------------------------------------------    
+%
+%    VoltDB:  The header that is included at the beginning of all messages.
+%    The length value includes the protocol version byte but not the 4 byte
+%    length value.
+%                                                                             
+%    --- pg. 8+9, VoltDB Client Wire Protocol Version 0, 05/05/10 ---         
+%                                                                             
+%******************************************************************************
+%                                                                             
+%    For Erlang,  the 4 leading length bytes  are effected by the flags of
+%    [binary, {packet, 4}]  to the gen_tcp:connect call.  Therefore,  only
+%    the protocol byte needs adding.
+%
+%    @end
+%
+%******************************************************************************
+	
+volt_header() ->
+
+	?VOLT_PROTOCOL_VERSION_BINARY.
+
+%*****************************************************************************%
+%                                                                             %
+%                                 Login                                       % 
+%                                                                             %
+%*****************************************************************************%
+%
+%    @doc
+%
+%    The login message is the first message a client can send to a server
+%    after opening a connection. A client does not need to wait for a res-
+%    ponse to the login message to begin sending invocation requests. 
+%
+%    --------------------------------------------------------------------+    
+%    |                    ... Message Header ...                         |    
+%    ---------------------------------------------------------------------    
+%    + User name:             String                                     |    
+%    + SHA-1 password hash:   Binary 20                                  |    
+%    ---------------------------------------------------------------------    
+%                                                                             
+%    --- pg. 8+9, VoltDB Client Wire Protocol Version 0, 05/05/10 ---         
+%                                                                             
+%    @end                                                                             
+%                                                                             
+%******************************************************************************
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Client log in to the VoltDB server cluster.
+
+login(Socket, Name, Password) ->
+
+    gen_tcp:send(Socket, volt_login(Name, Password)).
+
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Make VoltDB wire binary for login message from name and password.
+
+volt_login(Name, Password) ->
+	
+	HeaderBin  = volt_header(),          % all return binaries
+	NameBin    = volt_string(Name),
+	HashBin    = volt_hash(Password),
+	
+	<<HeaderBin/binary, NameBin/binary, HashBin/binary>>.
+
+	
+%%%----------------------------------------------------------------------------
+%%% @doc  Make SHA-1 hash for client log in to the VoltDB server cluster.
+
+volt_hash(Secret) when is_list(Secret) ->
+
+	volt_hash(list_to_binary(Secret));
+
+volt_hash(Secret) when is_binary(Secret) ->
+
+	crypto:start(),
+	crypto:sha(Secret).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1006,6 +1435,16 @@ erl_table_fields([ Type | TypesTail ], [ Name | NamesTail ], RowBinaryStream ) -
 %                                                                             %
 %   This is a list of callbacks that are kept to be called on execution and   %
 %   return of results to the client, from the server.                         %
+%                                                                             %
+%   On the Java Cient and Server:                                             %
+%                                                                             %
+%	"... there is an  AtomicLong used to generate the client data and a map   %
+%	from  Long values  to the provided  callbacks  for each connection to a   %
+%	VoltDB node.  Synchronous  invocations  use an a utomatically generated   %
+%	SynchronousCallback.  To  the server the client data  is opaque and not   %
+%	necessarily unique  so it generates  a transaction id  and uses that to   %
+%	map to the client connection and client data for a response."             %
+%	--- A. Weisberg, VoltDB, https://community.voltdb.com/node/83 ---         %
 %                                                                             %
 %******************************************************************************
 %                                                                             %
@@ -1088,9 +1527,21 @@ delete_callback({ callback_id, _} = Id) ->
 %%% Banner
 %%%----------------------------------------------------------------------------
 %%% @doc Prints a banner with library name and version, and a note.
-banner() ->
-	    io:format("~s ~s - ~s~n",[?LIBRARY, ?VERSION, ?EXPLAIN]).
+
+banner() -> banner(?EXPLAIN).
+
+banner(Message) ->
+    io:format("---------------------------------------------------------------------------~n"),
+    io:format("                                             %                             ~n"),
+    io:format("             %%%%% %%%%%   %%   %%   %%    %%%    %%  %%%%%%%%             ~n"),
+    io:format("             %%%   %%  %%  %%    %%  %  %%   %%%  %%     %%                ~n"),
+    io:format("             %%    %%%%%   %%  %  %%%   %%%   %%  %%  %  %%                ~n"),
+    io:format("             %%%%% %%  %%  %%%%%   %      %%%     %%%%%  %%                ~n"),
+    io:format("                                          %                                ~n"),
+    io:format("---------------------------------------------------------------------------~n"),
+    io:format("~s ~s - ~s~n",[?LIBRARY, ?VERSION, Message]),
+    ok.
 
 
 
-
+%%%-----------------------------------°%°-----------------------------------%%%
