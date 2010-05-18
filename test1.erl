@@ -6,7 +6,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 25 Apr 2010                                               %%%
-%%% Changed     : 12 May 2010                                               %%%
+%%% Changed     : 18 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         
 %%%   @doc                                                                  
@@ -56,8 +56,9 @@
 
 run() ->
 
-	erlunit:start([colors,nopasses]),
-	erlunit:banner("#1: Basic Types"),
+	erlunit:start([colors ]),
+	erlvolt:banner(),
+	erlunit:banner("Test #1: Basic Types"),
 
 	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,14 +82,14 @@ run() ->
 	?ERLUNIT_EQUAL(erlvolt:volt_float( 1234567890.098765431), << 1234567890.098765431:32/float>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_float(-1234567890.098765431), <<-1234567890.098765431:32/float>>),
 
-	?ERLUNIT_EQUAL(erlvolt:volt_float(nan),               ?VOLT_NAN),
-	?ERLUNIT_EQUAL(erlvolt:volt_float(positive_infinity), ?VOLT_POSITIVE_INFINITY),
-	?ERLUNIT_EQUAL(erlvolt:volt_float(negative_infinity), ?VOLT_NEGATIVE_INFINITY),
+	?ERLUNIT_EQUAL(erlvolt:volt_float(nan),                   ?VOLT_NAN),
+	?ERLUNIT_EQUAL(erlvolt:volt_float(positive_infinity),     ?VOLT_POSITIVE_INFINITY),
+	?ERLUNIT_EQUAL(erlvolt:volt_float(negative_infinity),     ?VOLT_NEGATIVE_INFINITY),
 	
 	?ERLUNIT_FAIL (erlvolt:volt_float( 0) ),
 	?ERLUNIT_FAIL (erlvolt:volt_float(-1) ),
 	?ERLUNIT_FAIL (erlvolt:volt_float( 1) ),
-	?ERLUNIT_FAIL (erlvolt:volt_float(nil)),
+%	?ERLUNIT_FAIL (erlvolt:volt_float(nil)),
 
 	erlunit:equal(erlvolt:volt_float(0.0),               <<0:32>>,                      "Volt float  0.0"),
 	erlunit:equal(erlvolt:volt_float(-1.0),              <<-1.0:32/float>>,             "Volt float -1.0"),
@@ -99,10 +100,10 @@ run() ->
 	erlunit:equal(erlvolt:volt_float(positive_infinity), ?VOLT_POSITIVE_INFINITY,       "Volt float  Pos. Inf."),
 	erlunit:equal(erlvolt:volt_float(negative_infinity), ?VOLT_NEGATIVE_INFINITY,       "Volt float  Neg. Inf."),
 
-	erlunit:fail (fun() -> erlvolt:volt_float(0)   end,                                  "Volt float  0"),
-	erlunit:fail (fun() -> erlvolt:volt_float(-1)  end,                                  "Volt float -1"),
-	erlunit:fail (fun() -> erlvolt:volt_float(1)   end,                                  "Volt float  1"),
-	erlunit:fail (fun() -> erlvolt:volt_float(nil) end,                                  "Volt float  nil"),
+	erlunit:fail (fun() -> erlvolt:volt_float(0)   end,                                 "Volt float  0"),
+	erlunit:fail (fun() -> erlvolt:volt_float(-1)  end,                                 "Volt float -1"),
+	erlunit:fail (fun() -> erlvolt:volt_float(1)   end,                                 "Volt float  1"),
+	erlunit:fail (fun() -> erlvolt:volt_float(nil) end,                                 "Volt float  nil"),
 
 
 	%*************************************************************************%
@@ -111,21 +112,23 @@ run() ->
     %                                                                         %
 	%*************************************************************************%
 
-	% Note: this very source file should be encoded in utf-8, not Erlang std latin-1.
 	Ouml   = unicode:characters_to_list("ö", utf8),
 	Delta   = unicode:characters_to_list("∂", utf8),
 	OumlSize = size(<<"ö">>),
 	DeltaSize = size(<<"∂">>),
 	MegaString = list_to_binary(string:chars(33, 1000000)),
+	MegaOverString = list_to_binary(string:chars(33, 1000001)),
+	% TODO: TEST UNICODE / LATIN-1 CHARS
 
-	erlunit:suite("Strings"),
-	erlunit:equal(erlvolt:volt_string("foo"), <<3:?VOLT_STRING_SIZE_BINARY_TYPE,"foo">>,        "Volt string 'foo'"),
-	erlunit:equal(erlvolt:volt_string("1"),   <<1:?VOLT_STRING_SIZE_BINARY_TYPE,"1">>,          "Volt string '1'"),
+	erlunit:suite("Strings"), 
+	erlunit:equal(erlvolt:volt_string("foo"), <<3:?VOLT_STRING_SIZE_BINARY_TYPE,"foo">>,         "Volt string 'foo'"),
+	erlunit:equal(erlvolt:volt_string("1"),   <<1:?VOLT_STRING_SIZE_BINARY_TYPE,"1">>,           "Volt string '1'"),
 	erlunit:equal(erlvolt:volt_string(Ouml),  <<OumlSize:?VOLT_STRING_SIZE_BINARY_TYPE,"ö">>,   "Volt string 'ö'"),
-	erlunit:equal(erlvolt:volt_string(Delta), <<DeltaSize:?VOLT_STRING_SIZE_BINARY_TYPE,"∂">>,  "Volt string '∂'"),
-	erlunit:equal(erlvolt:volt_string(""),    <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>,              "Volt empty string "),
-	erlunit:equal(erlvolt:volt_string(null),  <<-1:?VOLT_STRING_SIZE_BINARY_TYPE>>,             "Volt string NULL"),
+	erlunit:equal(erlvolt:volt_string(Delta), <<DeltaSize:?VOLT_STRING_SIZE_BINARY_TYPE,"∂">>,   "Volt string '∂'"),
+	erlunit:equal(erlvolt:volt_string(""),    <<0:?VOLT_STRING_SIZE_BINARY_TYPE>>,               "Volt empty string "),
+	erlunit:equal(erlvolt:volt_string(null),  <<-1:?VOLT_STRING_SIZE_BINARY_TYPE>>,              "Volt string NULL"),
 	?ERLUNIT_EQUAL_MSG(erlvolt:volt_string(MegaString), <<1000000:?VOLT_STRING_SIZE_BINARY_TYPE, MegaString/binary>>, "Volt 1MB string"),
+	?ERLUNIT_FAIL_MSG(erlvolt:volt_string(MegaOverString),                                       "Volt 1MB+1 string"),
 
 
 	%*************************************************************************%
@@ -135,39 +138,39 @@ run() ->
 	%*************************************************************************%
 	
 	erlunit:suite("Integers"),
-	erlunit:equal(erlvolt:volt_byte(0),    <<0:8>>,                        "Volt byte  0"),
-	erlunit:equal(erlvolt:volt_byte(1),    <<1:8>>,                        "Volt byte  1"),
-	erlunit:equal(erlvolt:volt_byte(-1),   <<-1:8>>,                       "Volt byte -1"),
-	erlunit:equal(fun() -> erlvolt:volt_byte(127)  end, <<127:8/signed>>,  "Volt byte 127"),
-	erlunit:fail (fun()  -> erlvolt:volt_byte(128)  end,                    "Volt byte  128"),
-	erlunit:equal(fun() -> erlvolt:volt_byte(-128) end, <<-128:8/signed>>, "Volt byte -128"),
-	erlunit:fail (fun()  -> erlvolt:volt_byte(-129) end,                    "Volt byte -129"),
+	erlunit:equal(erlvolt:volt_byte(0),     <<0:8>>,                             "Volt byte  0"),
+	erlunit:equal(erlvolt:volt_byte(1),     <<1:8>>,                             "Volt byte  1"),
+	erlunit:equal(erlvolt:volt_byte(-1),    <<-1:8>>,                            "Volt byte -1"),
+	erlunit:equal(fun() -> erlvolt:volt_byte(127)  end, <<127:8/signed>>,        "Volt byte 127"),
+	erlunit:fail (fun() -> erlvolt:volt_byte(128)  end,                          "Volt byte  128"),
+	erlunit:equal(fun() -> erlvolt:volt_byte(-128) end, <<-128:8/signed>>,       "Volt byte -128"),
+	erlunit:fail (fun() -> erlvolt:volt_byte(-129) end,                          "Volt byte -129"),
 
 	erlunit:equal(erlvolt:volt_short(0),    <<0:16>>,                            "Volt short  0"),
 	erlunit:equal(erlvolt:volt_short(1),    <<1:16>>,                            "Volt short  1"),
 	erlunit:equal(erlvolt:volt_short(-1),   <<-1:16>>,                           "Volt short -1"),
 	erlunit:equal(fun() -> erlvolt:volt_short( 32767) end, <<32767:16/signed>>,  "Volt short  32767"),
-	erlunit:fail (fun()  -> erlvolt:volt_short( 32768) end,                       "Volt short  32768"),
+	erlunit:fail (fun() -> erlvolt:volt_short( 32768) end,                       "Volt short  32768"),
 	erlunit:equal(fun() -> erlvolt:volt_short(-32768) end, <<-32768:16/signed>>, "Volt short -32768"),
-	erlunit:fail (fun()  -> erlvolt:volt_short(-32769) end,                       "Volt short -32769"),
+	erlunit:fail (fun() -> erlvolt:volt_short(-32769) end,                       "Volt short -32769"),
 
-	erlunit:equal(erlvolt:volt_integer(0),    <<0:32>>,                                      "Volt integer  0"),
-	erlunit:equal(erlvolt:volt_integer(1),    <<1:32>>,                                      "Volt integer  1"),
-	erlunit:equal(erlvolt:volt_integer(-1),   <<-1:32>>,                                     "Volt integer -1"),
+	erlunit:equal(erlvolt:volt_integer(0),  <<0:32>>,                                        "Volt integer  0"),
+	erlunit:equal(erlvolt:volt_integer(1),  <<1:32>>,                                        "Volt integer  1"),
+	erlunit:equal(erlvolt:volt_integer(-1), <<-1:32>>,                                       "Volt integer -1"),
 	erlunit:equal(fun() -> erlvolt:volt_integer( 2147483647) end, <<2147483647:32/signed>>,  "Volt integer  2147483647"),
-	erlunit:fail (fun()  -> erlvolt:volt_integer( 2147483648) end,                            "Volt integer  2147483648"),
+	erlunit:fail (fun() -> erlvolt:volt_integer( 2147483648) end,                            "Volt integer  2147483648"),
 	erlunit:equal(fun() -> erlvolt:volt_integer(-2147483648) end, <<-2147483648:32/signed>>, "Volt integer -2147483648"),
-	erlunit:fail (fun()  -> erlvolt:volt_integer(-2147483649) end,                            "Volt integer -2147483649"),
+	erlunit:fail (fun() -> erlvolt:volt_integer(-2147483649) end,                            "Volt integer -2147483649"),
 
 	erlunit:equal(erlvolt:volt_long(0),    <<0:64>>,                                         "Volt long  0"),
 	erlunit:equal(erlvolt:volt_long(1),    <<1:64>>,                                         "Volt long  1"),
 	erlunit:equal(erlvolt:volt_long(-1),   <<-1:64>>,                                        "Volt long -1"),
 	erlunit:equal(fun() -> erlvolt:volt_long( 9223372036854775807) end, <<9223372036854775807:64/signed>>,
 	                                                                                         "Volt long  9223372036854775807"),
-	erlunit:fail (fun()  -> erlvolt:volt_long( 9223372036854775808) end,                      "Volt long  9223372036854775808"),
+	erlunit:fail (fun() -> erlvolt:volt_long( 9223372036854775808) end,                      "Volt long  9223372036854775808"),
 	erlunit:equal(fun() -> erlvolt:volt_long(-9223372036854775808) end, <<-9223372036854775808:64/signed>>,
 	                                                                                         "Volt long -9223372036854775808"),
-	erlunit:fail (fun()  -> erlvolt:volt_long(-9223372036854775809) end,                      "Volt long -9223372036854775809"),
+	erlunit:fail (fun() -> erlvolt:volt_long(-9223372036854775809) end,                      "Volt long -9223372036854775809"),
 
 	%%%-decode---------------------------------------------------------------------
 	
@@ -215,19 +218,19 @@ run() ->
 	?ERLUNIT_FAIL (erlvolt:erl_integer(<<255,255,255,255,255,255,255,255,255,173,33,210,178,57,217,128>>)),
 	?ERLUNIT_FAIL (erlvolt:erl_integer(<<0,0,0,0,0,0,0,0,0,82,222,45,77,198,38,128>>)),
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<1000000000000:128>>),  1  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<1000000000000:128>>),  1.0),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 1000000000000:128>>),  1  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 1000000000000:128>>),  1.0),
 	?ERLUNIT_FAIL (erlvolt:erl_integer(<< 999999999999:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer(<<1100000000000:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer(<<1999999999999:128>>)),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<10000000000000:128>>),  10  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<10000000000000:128>>),  10.0),
-	?ERLUNIT_FAIL (erlvolt:erl_integer(<<10100000000000:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer(<<10999999999999:128>>)),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<10000000000000000000:128>>),  10000000  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<10000000000000000000:128>>),  10000000.0),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer(<<10000000000000000000:128>>),  1.0e7),
-	?ERLUNIT_FAIL (erlvolt:erl_integer(<<10000000100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer(<< 1100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer(<< 1999999999999:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 10000000000000:128>>),  10  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 10000000000000:128>>),  10.0),
+	?ERLUNIT_FAIL (erlvolt:erl_integer(<< 10100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer(<< 10999999999999:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 10000000000000000000:128>>),  10000000  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 10000000000000000000:128>>),  10000000.0),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 10000000000000000000:128>>),  1.0e7),
+	?ERLUNIT_FAIL (erlvolt:erl_integer(<< 10000000100000000000:128>>)),
 
 	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 999999999999998000000000000:128>>),  999999999999998),
 	?ERLUNIT_EQUAL(erlvolt:erl_integer(<< 9999999999999980000000000000:128>>),  9999999999999980),
@@ -269,19 +272,19 @@ run() ->
 	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<255,255,255,255,255,255,255,255,255,173,33,210,178,57,217,128>>)),
 	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<0,0,0,0,0,0,0,0,0,82,222,45,77,198,38,128>>)),
 
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<1000000000000:128>>),  1  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<1000000000000:128>>),  1.0),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 1000000000000:128>>),  1  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 1000000000000:128>>),  1.0),
 	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 999999999999:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<1100000000000:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<1999999999999:128>>)),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000:128>>),  10  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000:128>>),  10.0),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<10100000000000:128>>)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<10999999999999:128>>)),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000000000:128>>),  10000000  ),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000000000:128>>),  10000000.0),
-	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<10000000000000000000:128>>),  1.0e7),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<10000000100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 1100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 1999999999999:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 10000000000000:128>>),  10  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 10000000000000:128>>),  10.0),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 10100000000000:128>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 10999999999999:128>>)),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 10000000000000000000:128>>),  10000000  ),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 10000000000000000000:128>>),  10000000.0),
+	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 10000000000000000000:128>>),  1.0e7),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 10000000100000000000:128>>)),
 
 	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 999999999999998000000000000:128>>),  999999999999998),
 	?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<< 9999999999999980000000000000:128>>),  9999999999999980),
@@ -310,11 +313,11 @@ run() ->
 
 
 	% ?ERLUNIT_EQUAL(erlvolt:erl_integer_or_null_from_decimal(<<-99999999999999999999999999999999999999000000000000:128>>), -99999999999999999999999999999999999999),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal( 100000000000000000000000000000000000000)),
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(-100000000000000000000000000000000000000)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(   100000000000000000000000000000000000000)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(  -100000000000000000000000000000000000000)),
 
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,16>>)), 
-	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,20>>)),
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,16>>)), 
+	?ERLUNIT_FAIL (erlvolt:erl_integer_or_null_from_decimal(<< 0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,20>>)),
 
 
 
@@ -329,18 +332,18 @@ run() ->
 	?ERLUNIT_EQUAL(erlvolt:volt_decimal(-23325.23425), <<255,255,255,255,255,255,255,255,255,173,33,210,178,57,217,128>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 23325.23425), <<0,0,0,0,0,0,0,0,0,82,222,45,77,198,38,128>>),
 
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1  ),                            <<1000000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1.0),                            <<1000000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 0.999999999999),                 << 999999999999:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1.1),                            <<1100000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1.999999999999),                 <<1999999999999:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10  ),                          <<10000000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10.0),                          <<10000000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10.1),                          <<10100000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10.999999999999),               <<10999999999999:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10000000  ),                     <<10000000000000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10000000.0),                     <<10000000000000000000:128>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10000000.1),                     <<10000000100000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1  ),                                     <<1000000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1.0),                                     <<1000000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 0.999999999999),                          << 999999999999:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1.1),                                     <<1100000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 1.999999999999),                          <<1999999999999:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10  ),                                    <<10000000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10.0),                                    <<10000000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10.1),                                    <<10100000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10.999999999999),                         <<10999999999999:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10000000  ),                              <<10000000000000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10000000.0),                              <<10000000000000000000:128>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 10000000.1),                              <<10000000100000000000:128>>),
 
 	?ERLUNIT_EQUAL(erlvolt:volt_decimal( 99999999999999999999999999999999999998),  << 99999999999999999999999999999999999998000000000000:128>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_decimal(-99999999999999999999999999999999999998),  <<-99999999999999999999999999999999999998000000000000:128>>),
@@ -349,8 +352,8 @@ run() ->
 	?ERLUNIT_FAIL (erlvolt:volt_decimal( 100000000000000000000000000000000000000)),
 	?ERLUNIT_FAIL (erlvolt:volt_decimal(-100000000000000000000000000000000000000)),
 
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal(23325.12345678901), <<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,16>>), 
-	?ERLUNIT_EQUAL(erlvolt:volt_decimal(23325.123456789012), <<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,20>>),
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal(23325.12345678901),                        <<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,16>>), 
+	?ERLUNIT_EQUAL(erlvolt:volt_decimal(23325.123456789012),                       <<0,0,0,0,0,0,0,0,0,82,222,19,129,251,234,20>>),
 
 	%%%------------------------------------------------------------------decimals-
 	
@@ -382,8 +385,8 @@ run() ->
 	% 1> 10000000.999999999999.
 	% 10000001.0
 	%
-	% ?ERLUNIT_EQUAL(erlvolt:volt_decimal(10000000.999999999999),          <<10000000999999999999:128>>),
-	% ?ERLUNIT_EQUAL(erlvolt:volt_decimal(10000000.100000000001),          <<10000000100000000001:128>>),
+	% ?ERLUNIT_EQUAL(erlvolt:volt_decimal(10000000.999999999999),                  <<10000000999999999999:128>>),
+	% ?ERLUNIT_EQUAL(erlvolt:volt_decimal(10000000.100000000001),                  <<10000000100000000001:128>>),
 
 
 	%*************************************************************************%
@@ -584,40 +587,40 @@ run() ->
 	% to Erlang 'now' time format {Megasec,Sec,Microsec} from (millisec) Integer -
 	% that function represents more of an intermediary step really but might come 
 	% in handy somewhere
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(0),   {0,0,0}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1),    {0,0,1000}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(-1),    {0,0,-1000}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(10000),   {0,10,0}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1000000001),   {1,0,1000}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?BILLION+10*1000),   {1,10,0}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?BILLION+10*1000+1),   {1,10,1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(0),                           {0,0,0}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1),                           {0,0,1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(-1),                          {0,0,-1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(10000),                       {0,10,0}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1000000001),                  {1,0,1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?BILLION+10*1000),            {1,10,0}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?BILLION+10*1000+1),          {1,10,1000}),
 	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)), {Mega,Sec,trunc(Micro/1000)*1000}),
 
 
 	% to Erlang 'now' time format {Megasec,Sec,Microsec} from binary
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<0:64>>),   {0,0,0}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1:64>>),    {0,0,1000}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<-1:64>>),    {0,0,-1000}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<10000:64>>),   {0,10,0}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1000000001:64>>),   {1,0,1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<0:64>>),                    {0,0,0}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1:64>>),                    {0,0,1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<-1:64>>),                   {0,0,-1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<10000:64>>),                {0,10,0}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1000000001:64>>),           {1,0,1000}),
 	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?BILLION+10*1000):64>>),   {1,10,0}),
-	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?BILLION+10*1000+1):64>>),   {1,10,1000}),
+	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?BILLION+10*1000+1):64>>), {1,10,1000}),
 	?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)):64>>), {Mega,Sec,trunc(Micro/1000)*1000}),
 
 
 	% from Erlang datetime
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),  {{1969,12,31},{23,59,59}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-999:64>>),   {{1970,1,1},{0,0,0}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  -1:64>>),   {{1970,1,1},{0,0,0}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  0:64>>),    {{1970,1,1},{0,0,0}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  1:64>>),    {{1970,1,1},{0,0,0}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<999:64>>),    {{1970,1,1},{0,0,0}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),  {{1969,12,31},{23,59,59}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),  {{1969,12,31},{23,59,59}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),  {{1969,12,31},{23,59,59}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),   {{1970,1,1},{0,0,1}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),   {{1970,1,1},{0,0,1}}),
-	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),   {{1970,1,1},{0,0,1}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-999:64>>),                       {{1970,1,1},{0,0,0}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  -1:64>>),                       {{1970,1,1},{0,0,0}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  0:64>>),                        {{1970,1,1},{0,0,0}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  1:64>>),                        {{1970,1,1},{0,0,0}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<999:64>>),                        {{1970,1,1},{0,0,0}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),                       {{1970,1,1},{0,0,1}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),                       {{1970,1,1},{0,0,1}}),
+	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),                       {{1970,1,1},{0,0,1}}),
 	
 	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<(365*24*60*60*1000+1000):64>>),   {{1971,1,1},{0,0,1}}),
 	?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<(365*24*60*60*1000-1000):64>>),   {{1970,12,31},{23,59,59}}),
@@ -674,21 +677,133 @@ run() ->
 	%*************************************************************************%
 	
 	erlunit:suite("Arrays"),
-
  
 	%%%-encode----------------------------------------------------------arrays-
 
+%	Array_Erl_1 = [],
+%	Array_Bin_1 = <<?VOLT_STRING,0,2,0,0,0,4,102,111,111,49,0,0,0,4,102,111,111,50>>,
+%	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1), Array_Bin_1),
+%	TODO: empty array
+
+	%%% strings
+
+	Array_Erl_1 = [ <<"foo1">>, <<"foo2">> ],
+	Array_Bin_1 = <<?VOLT_STRING,0,2,0,0,0,4,102,111,111,49,0,0,0,4,102,111,111,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1), Array_Bin_1),
+	%%%   --- pg. 5, VoltDB Client Wire Protocol Version 0, 05/05/10 ---        
+
+	Array_Erl_1a = [ <<"">>, <<"foo2">> ],
+	Array_Bin_1a = <<?VOLT_STRING,0,2,0,0,0,0,0,0,0,4,102,111,111,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1a), Array_Bin_1a),
+	
+	Array_Erl_1b = { voltarray, [ <<"foo1">>, <<"foo2">> ]},
+	Array_Bin_1b = <<?VOLT_STRING,0,2,0,0,0,4,102,111,111,49,0,0,0,4,102,111,111,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1b), Array_Bin_1b),
+
+	Array_Erl_1c = { voltarray, ?VOLT_STRING, [ <<"foo1">>, <<"foo2">> ]},
+	Array_Bin_1c = <<?VOLT_STRING,0,2,0,0,0,4,102,111,111,49,0,0,0,4,102,111,111,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1c), Array_Bin_1c),
+
+	Array_Erl_1d = { voltarray, ?VOLT_STRING, [ <<"">>, <<"foo2">> ]},
+	Array_Bin_1d = <<?VOLT_STRING,0,2,0,0,0,0,0,0,0,4,102,111,111,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1d), Array_Bin_1d),
+
+	Array_Erl_1e = [ <<"">>, <<>> ],
+	Array_Bin_1e = <<?VOLT_STRING,0,2,0,0,0,0,0,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1e), Array_Bin_1e),
+
+	Array_Erl_1f = { voltarray, ?VOLT_STRING, [ <<>>, <<>> ]},
+	Array_Bin_1f = <<?VOLT_STRING,0,2,0,0,0,0,0,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_1f), Array_Bin_1f),
+	
+	%%% integer
+
+	Array_Erl_2 = [ 1, 2 ],
+	Array_Bin_2 = <<?VOLT_INTINT,0,2,0,0,0,1,0,0,0,2>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_2), Array_Bin_2),
+
+	Array_Erl_2a = [ 0, 2 ],
+	Array_Bin_2a = <<?VOLT_INTINT,0,2,0,0,0,0,0,0,0,2>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_2a), Array_Bin_2a),
+
+	Array_Erl_2b = { voltarray, [ 1, 2 ]},
+	Array_Bin_2b = <<?VOLT_INTINT,0,2,0,0,0,1,0,0,0,2>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_2b), Array_Bin_2b),
+
+	Array_Erl_2c = { voltarray, ?VOLT_INTEGER, [ 1, 2 ]},
+	Array_Bin_2c = <<?VOLT_INTINT,0,2,0,0,0,1,0,0,0,2>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_2c), Array_Bin_2c),
+
+	%%% strings
+
+	Array_Erl_3 = [ "1", "2" ],
+	Array_Bin_3 = <<?VOLT_STRING,0,2,0,0,0,1,49,0,0,0,1,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3), Array_Bin_3),
+
+	Array_Erl_3a = [ "0", "2" ],
+	Array_Bin_3a = <<?VOLT_STRING,0,2,0,0,0,1,48,0,0,0,1,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3a), Array_Bin_3a),
+
+	Array_Erl_3b = { voltarray, [ "1", "2" ]},
+	Array_Bin_3b = <<?VOLT_STRING,0,2,0,0,0,1,49,0,0,0,1,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3b), Array_Bin_3b),
+
+	Array_Erl_3c = { voltarray, ?VOLT_STRING, [ "1", "2" ]},
+	Array_Bin_3c = <<?VOLT_STRING,0,2,0,0,0,1,49,0,0,0,1,50>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3c), Array_Bin_3c),
+
+	%%% floats
+
+	Array_Erl_4 = [ 1.0, 2.0 ],
+	Array_Bin_4 = <<8,0,2,63,128,0,0,64,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_4), Array_Bin_4),
+	
+	Array_Erl_4a = [ 0.0, 2.0 ],
+	Array_Bin_4a = <<8,0,2,0,0,0,0,64,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_4a), Array_Bin_4a),
+	
+	Array_Erl_4b = { voltarray, [ 1.0, 2.0 ]},
+	Array_Bin_4b = <<8,0,2,63,128,0,0,64,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_4b), Array_Bin_4b),
+
+	Array_Erl_4c = { voltarray, ?VOLT_FLOAT, [ 1.0, 2.0 ]},
+	Array_Bin_4c = <<8,0,2,63,128,0,0,64,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_4c), Array_Bin_4c),
+
+	Array_Erl_4d = { voltarray, ?VOLT_FLOAT, [ -0.1, -2.0 ]},
+	Array_Bin_4d = <<8,0,2,189,204,204,205,192,0,0,0>>, % TODO: verify binary (is blindly copied)
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_4d), Array_Bin_4d),
+
+	%%% decimals
+
+	Array_Erl_5c = { voltarray, ?VOLT_DECIMAL, [ 1.0, 2 ]},
+	Array_Bin_5c = <<22,0,2,0,0,0,0,0,0,0,0,0,0,0,232,212,165,16,0,0,0,0,0,0,0,0,0,0,0,1,209,169,74,32,0>>, % TODO: verify binary (is blindly copied)
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_5c), Array_Bin_5c),
+
+	Array_Erl_5d = { voltarray, ?VOLT_DECIMAL, [ -0.1, -2 ]},
+	Array_Bin_5d = <<22,0,2,255,255,255,255,255,255,255,255,255,255,255,232,183,137,24,0,255,255,255,255,255,255,255,255,255,255,254,46,86,181,224,0>>, % TODO: verify binary (is blindly copied)
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_5d), Array_Bin_5d),
+
+
+	%%% nested arrays
+
+	Array_Erl_6 = { voltarray, ?VOLT_ARRAY, [ [ [1.0, 2.0], [1.0, 2.0] ], [ [1.0, 2.0], [1.0, 2.0] ] ]},
+	Array_Bin_6 = <<?VOLT_ARRAY,0,2,?VOLT_ARRAY,0,2,8,0,2,63,128,0,0,64,0,0,0,8,0,2,63,128,0,0,64,0,0,0,?VOLT_ARRAY,0,2,8,0,2,63,128,0,0,64,0,0,0,8,0,2,63,128,0,0,64,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_6), Array_Bin_6),
+
+	Array_Erl_6b = { voltarray, ?VOLT_ARRAY, [ [1.0, 2.0], [1.0, 2.0] ]},
+	Array_Bin_6b = <<?VOLT_ARRAY,0,2,8,0,2,63,128,0,0,64,0,0,0,8,0,2,63,128,0,0,64,0,0,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_6b), Array_Bin_6b),
+
+	Array_Erl_6c = { voltarray, ?VOLT_ARRAY, [ { voltarray, ?VOLT_DECIMAL, [1.0, 2.0] }, { voltarray, ?VOLT_DECIMAL, [1.0, 2.0] } ]},
+	Array_Bin_6c = <<?VOLT_ARRAY,0,2,22,0,2,0,0,0,0,0,0,0,0,0,0,0,232,212,165,16,0,0,0,0,0,0,0,0,0,0,0,1,209,169,74,32,0, 22,0,2,0,0,0,0,0,0,0,0,0,0,0,232,212,165,16,0,0,0,0,0,0,0,0,0,0,0,1,209,169,74,32,0>>,
+	?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_6c), Array_Bin_6c),
+
+	% TODO: catch type mixes
+
 	%%%-decode----------------------------------------------------------arrays-
 
-	%%%   --- pg. 5, VoltDB Client Wire Protocol Version 0, 12/11/09 ---        
-	% ArrBin1 = <<?VOLT_STRING,0,2,0,0,0,4,102,111,111,49,0,0,0,4,102,111,111,50>>,
-	% ArrErl1 = [ <<"foo1">>, <<"foo2">> ],
-
-	% ArrBin2 = <<?VOLT_TINYINT,0,0,0,2,1,2>>,
-	% ArrErl2 = [ 1, 2 ],
-
-	% ?ERLUNIT_EQUAL(erlvolt:erl_array(ArrBin1), ArrErl1),
-	% ?ERLUNIT_EQUAL(erlvolt:erl_array(ArrBin2), ArrErl2),
+	%%% never used
 
 	%%%----------------------------------------------------------------------------
 	%%% Mounting of Tests Done. Execute.
@@ -697,3 +812,4 @@ run() ->
 	erlunit:execute().
 	
 
+%%%-----------------------------------�%�-----------------------------------%%%
