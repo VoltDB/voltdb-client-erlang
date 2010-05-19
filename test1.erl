@@ -49,8 +49,12 @@
 %%%
 %%%    run/1
 %%%
-%%%    @doc This is the only function in this package, it runs a unit test on
+%%%    @doc
+%%%
+%%%    This is the only function in this package, it runs a unit test on
 %%%    erlvolt.erl.
+%%%
+%%%    @end
 %%%
 %%%----------------------------------------------------------------------------
 
