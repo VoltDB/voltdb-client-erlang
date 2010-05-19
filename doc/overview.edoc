@@ -8,7 +8,7 @@
 %%% Author      : H. Diedrich <hd2010 at eonblast.com>                      %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 13 May 2010                                               %%%
-%%% Changed     : 13 May 2010                                               %%% 
+%%% Changed     : 18 May 2010                                               %%% 
 %%%-------------------------------------------------------------------------%%%
 
 	@copyright VoltDB, LLC - [http://www.voltdb.com]         
@@ -37,7 +37,9 @@
     == The Present ==                                                
     
     * Functions for encoding and decoding basic VoltDB types are complete.<br/>
-    * Current work is on encoding VoltTables.<br/>
+    * Functions for encoding and decoding arrays, VoltTables and parameters are complete.<br/>
+    * Functions for login are complete.<br/>
+    * Current work is on connection tests.<br/>
                                                                          
     == License ==
                                                                          
