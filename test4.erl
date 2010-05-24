@@ -6,7 +6,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 14 May 2010                                               %%%
-%%% Changed     : 14 May 2010                                               %%%
+%%% Changed     : 24 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         
 %%%   @doc                                                                  
@@ -94,6 +94,7 @@ run() ->
     >>,
 
     VoltTable_Erl_1 = { volttable, [<<"Test">>], [?VOLT_BIGINT], [ { voltrow, [5] } ] },
+    VoltPlain_Erl_1 = [ [5] ],
     
     %%%   --- pg. 5,6, VoltDB Client Wire Protocol Version 0, 05/05/10 ---        
 
@@ -128,6 +129,8 @@ run() ->
                         [?VOLT_BIGINT,?VOLT_BIGINT,?VOLT_BIGINT], 
                         [ { voltrow, [5,5,5] } ] },
 
+    VoltPlain_Erl_2 = [ [5,5,5] ],
+
     %%%------------------------------------------------------------------------
     %%% 3: Multiple Rows
     %%%------------------------------------------------------------------------
@@ -156,6 +159,8 @@ run() ->
                         [ { voltrow, [5] },
                           { voltrow, [5] },
                           { voltrow, [5] } ] },
+    
+    VoltPlain_Erl_3 = [ [5], [5], [5] ],
     
     %%%------------------------------------------------------------------------
     %%% 4: Multiple Rows and Columns
@@ -197,6 +202,8 @@ run() ->
                         [ { voltrow, [5,5,5] },
                           { voltrow, [5,5,5] },
                           { voltrow, [5,5,5] } ] },
+                          
+    VoltPlain_Erl_4 = [ [5,5,5], [5,5,5], [5,5,5] ],
                           
     %%%------------------------------------------------------------------------
     %%% 5: All Column Types
@@ -256,6 +263,8 @@ run() ->
                         [?VOLT_TINYINT,?VOLT_SMALLINT,?VOLT_INTINT,?VOLT_BIGINT,
                          ?VOLT_FLOAT,?VOLT_DECIMAL,?VOLT_TIMESTAMP,?VOLT_STRING], 
                         [ { voltrow, [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>] } ] },                          
+
+    VoltPlain_Erl_5 = [ [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>] ],
 
     %%%------------------------------------------------------------------------
     %%% 6: All Column Types, Multiple Rows
@@ -447,6 +456,18 @@ run() ->
                           { voltrow, [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>] } ] },                          
 
 
+    VoltPlain_Erl_6 =  [ [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>] ],
+
+
     %%%------------------------------------------------------------------------
     %%% 7: Long Column
     %%%------------------------------------------------------------------------
@@ -469,6 +490,8 @@ run() ->
     >>,
 
     VoltTable_Erl_7 = { volttable, [<<"Test">>], [?VOLT_STRING], [ { voltrow, [MegaString1] } ] },
+    
+    VoltPlain_Erl_7 = [ [MegaString1] ],
     
     %%%------------------------------------------------------------------------
     %%% 8: Multiple Long Columns
@@ -505,6 +528,8 @@ run() ->
                         [<<"Test">>,<<"Test">>,<<"Test">>], 
                         [?VOLT_STRING,?VOLT_STRING,?VOLT_STRING], 
                         [ { voltrow, [MillString1,MillString1,MillString1] } ] },      
+
+    VoltPlain_Erl_8 = [ [MillString1,MillString1,MillString1] ],      
 
 
     %%%------------------------------------------------------------------------
@@ -546,6 +571,7 @@ run() ->
                         [?VOLT_STRING,?VOLT_STRING,?VOLT_STRING], 
                         [ { voltrow, [FancyString1,FancyString2,FancyString3] } ] },
     
+    VoltPlain_Erl_9 = [ [FancyString1,FancyString2,FancyString3] ],
 
 
     %*************************************************************************%
@@ -597,7 +623,6 @@ run() ->
     ?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_7), VoltTable_Bin_7),
     ?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_8), VoltTable_Bin_8),
     ?ERLUNIT_EQUAL(erlvolt:volt_table(VoltTable_Erl_9), VoltTable_Bin_9),
-
     
     %*************************************************************************%
     %                                Decoding                                 % 
@@ -614,6 +639,16 @@ run() ->
     ?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_7), VoltTable_Erl_7),
     ?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_8), VoltTable_Erl_8),
     ?ERLUNIT_EQUAL(erlvolt:erl_table(VoltTable_Bin_9), VoltTable_Erl_9),
+
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_1), VoltPlain_Erl_1),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_2), VoltPlain_Erl_2),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_3), VoltPlain_Erl_3),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_4), VoltPlain_Erl_4),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_5), VoltPlain_Erl_5),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_6), VoltPlain_Erl_6),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_7), VoltPlain_Erl_7),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_8), VoltPlain_Erl_8),
+    ?ERLUNIT_EQUAL(erlvolt:erl_plaintable(VoltTable_Bin_9), VoltPlain_Erl_9),
 
     %*************************************************************************%
     %                                Two-Way                                  % 
@@ -642,9 +677,71 @@ run() ->
     ?ERLUNIT_EQUAL(erlvolt:volt_table(erlvolt:erl_table(VoltTable_Bin_9)), VoltTable_Bin_9),
 
 
+    %*************************************************************************%
+    %                                                                         %
+    %                            Access Functions                             % 
+    %                                                                         %
+    %*************************************************************************%
     %%%------------------------------------------------------------------------
-    %%% Mounting of Tests Done. Execute.
+    %%% fetchRow: get a row out of a VoltTable structure.
     %%%------------------------------------------------------------------------
+
+    VoltTable_Erl_100 = { volttable, 
+                        [<<"Test1">>,<<"Test2">>,<<"Test3">>,<<"Test4">>,
+                         <<"Test5">>,<<"Test6">>,<<"Test7">>,<<"Test8">>], 
+                        [?VOLT_TINYINT,?VOLT_SMALLINT,?VOLT_INTINT,?VOLT_BIGINT,
+                         ?VOLT_FLOAT,?VOLT_DECIMAL,?VOLT_TIMESTAMP,?VOLT_STRING], 
+                        [ { voltrow, [1,20,3,4,1.0,6,{1183,792027,0},<<"One">>] },                          
+                          { voltrow, [2,30,3,4,2.0,66,{1183,792027,1},<<"Two">>] },                          
+                          { voltrow, [3,40,3,4,3.0,666,{1183,792027,2},<<"Three">>] },                          
+                          { voltrow, [4,50,3,4,4.0,66.66,{1183,792027,3},<<"Four">>] },                          
+                          { voltrow, [5,60,3,4,5.0,66.666,{1183,792027,4},<<"Five">>] },                          
+                          { voltrow, [6,70,3,4,6.0,66.6666,{1183,792027,5},<<"Six">>] },                          
+                          { voltrow, [7,80,3,4,7.0,66.66,{1183,792027,6},<<"Seven">>] },                          
+                          { voltrow, [8,90,3,4,8.0,66.6,{1183,792027,7},<<"Eight">>] },                          
+                          { voltrow, [9,00,3,4,9.0,66,{1183,792027,8},<<"Nine">>] },                          
+                          { voltrow, [0,10,3,4,0.0,6,{1183,792027,9},<<"Zero">>] } ] },  
+
+    ?ERLUNIT_EQUAL(erlvolt:fetchRow(VoltTable_Erl_100, 1), { voltrow, [1,20,3,4,1.0,6,{1183,792027,0},<<"One">>] }),
+    ?ERLUNIT_EQUAL(erlvolt:fetchRow(VoltTable_Erl_100, 2), { voltrow, [2,30,3,4,2.0,66,{1183,792027,1},<<"Two">>] }),
+    ?ERLUNIT_EQUAL(erlvolt:fetchRow(VoltTable_Erl_100, 3), { voltrow, [3,40,3,4,3.0,666,{1183,792027,2},<<"Three">>] }),
+    ?ERLUNIT_EQUAL(erlvolt:fetchRow(VoltTable_Erl_100, 10), { voltrow, [0,10,3,4,0.0,6,{1183,792027,9},<<"Zero">>] }),
+    ?ERLUNIT_FAIL (erlvolt:fetchRow(VoltTable_Erl_100, 11)),
+    ?ERLUNIT_FAIL (erlvolt:fetchRow(VoltTable_Erl_100, 0)),
+    ?ERLUNIT_FAIL (erlvolt:fetchRow(VoltTable_Erl_100, -1)),
+    % TODO: -1 = forelast ... last ?
+
+    %%%------------------------------------------------------------------------
+    %%% getField: any type out of a row.
+    %%%------------------------------------------------------------------------
+
+    ?ERLUNIT_EQUAL(erlvolt:getField({ voltrow, [ 1,2,3 ]}, 1), 1),
+    ?ERLUNIT_EQUAL(erlvolt:getField({ voltrow, [ 1,2,3 ]}, 2), 2),
+    ?ERLUNIT_EQUAL(erlvolt:getField({ voltrow, [ 1,2,3 ]}, 3), 3),
+    ?ERLUNIT_FAIL (erlvolt:getField({ voltrow, [ 1,2,3 ]}, 4)),
+
+    ?ERLUNIT_EQUAL(erlvolt:getField({ voltrow, [ "1","2","3" ]}, 1), "1"),
+    ?ERLUNIT_EQUAL(erlvolt:getField({ voltrow, [ "1","2","3" ]}, 2), "2"),
+    ?ERLUNIT_EQUAL(erlvolt:getField({ voltrow, [ "1","2","3" ]}, 3), "3"),
+    ?ERLUNIT_FAIL (erlvolt:getField({ voltrow, [ "1","2","3" ]}, 4)),
+
+    %%%------------------------------------------------------------------------
+    %%% getString: get as string (list) out of a row.
+    %%%------------------------------------------------------------------------
+
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ "1","2","3" ]}, 1), "1"),
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ "1","2","3" ]}, 2), "2"),
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ "1","2","3" ]}, 3), "3"),
+    ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ "1","2","3" ]}, 4)),
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ 1,2,3 ]}, 3), "3"),
+    ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ 1,2,3 ]}, 4)),
+
+
+    %*************************************************************************%
+    %                                                                         %
+    %                            Execute Tests                                % 
+    %                                                                         %
+    %*************************************************************************%
 
     erlunit:execute().
     
