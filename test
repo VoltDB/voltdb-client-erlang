@@ -2,4 +2,4 @@ erlc erlunit/erlunit.erl
 erlc erlvolt.erl
 erlc test1.erl; erl -s test1 run -s init stop -noshell
 erlc test4.erl; erl -s test4 run -s init stop -noshell
-
+echo Watch out there are two 'Overall' results displayed for now. 

@@ -1,5 +1,5 @@
 -module(client).
--import(erlvolt).
+-import(["../../erlvolt"]).
 -include("../../erlvolt.hrl").
 
 -export([run/0]).
@@ -19,11 +19,11 @@ run() ->
         %%% Load data into the database
         %%%
     
-        results = erlvolt:callProcedure(Connection, "Insert", ["Hello",  "World", "English"]),
-        results = erlvolt:callProcedure(Connection, "Insert", ["Bonjour","Monde", "French"]),
-        results = erlvolt:callProcedure(Connection, "Insert", ["Hola",   "Mundo", "Spanish"]),
-        results = erlvolt:callProcedure(Connection, "Insert", ["Hej",    "Verden","Danish"]),
-        results = erlvolt:callProcedure(Connection, "Insert", ["Ciao",   "Mondo", "Italian"]),
+        erlvolt:callProcedure(Connection, "Insert", ["Hello",  "World", "English"]),
+        erlvolt:callProcedure(Connection, "Insert", ["Bonjour","Monde", "French"]),
+        erlvolt:callProcedure(Connection, "Insert", ["Hola",   "Mundo", "Spanish"]),
+        erlvolt:callProcedure(Connection, "Insert", ["Hej",    "Verden","Danish"]),
+        erlvolt:callProcedure(Connection, "Insert", ["Ciao",   "Mondo", "Italian"]),
         
         %%%
         %%% Retrieve the message.

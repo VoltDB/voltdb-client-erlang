@@ -1,0 +1,5 @@
+echo This sample works with the catalog and server of voltdb/examples/helloworld.
+echo Run the server you built with said example and then run ./hello
+ 
+erlc erlvolt.erl
+erlc hello.erl; erl -s hello run -s init stop -noshell

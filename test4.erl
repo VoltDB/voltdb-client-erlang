@@ -431,7 +431,7 @@ run() ->
     0,0,0,3,            % Row 10 Column 3 Value
     0,0,0,0,0,0,0,4,    % Row 10 Column 4 Value
     64,160,0,0,         % Row 10 Column 5 Value
-    
+        
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 10 Column 6 Value (6.0)
     0,0,1,19,159,128,213,120,                  % Row 10 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116                 % Row 10 Column 8 Value ("Eight")
@@ -457,15 +457,15 @@ run() ->
 
 
     VoltPlain_Erl_6 =  [ [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
-					     [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>] ],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>],
+                         [1,2,3,4,5.0,6,{1183,792027,0},<<"Eight">>] ],
 
 
     %%%------------------------------------------------------------------------
@@ -736,6 +736,33 @@ run() ->
     ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ 1,2,3 ]}, 3), "3"),
     ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ 1,2,3 ]}, 4)),
 
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test1">>), "1"),
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test2">>), "2"),
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test3">>), "3"),
+    ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test4">>)), % Test4 is present in VoltTable_Erl_100
+    ?ERLUNIT_EQUAL(erlvolt:getString({ voltrow, [ 1,2,3 ]}, VoltTable_Erl_100, <<"Test3">>), "3"),
+    ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ 1,2,3 ]}, VoltTable_Erl_100, <<"TestX">>)), % TestX is not present in VoltTable_Erl_100
+    ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ 1,2,3 ]}, VoltTable_Erl_100, <<"Test4">>)), % Test4 is present in VoltTable_Erl_100
+    ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ ]}, VoltTable_Erl_100, <<"Test1">>)), % Test1 is present in VoltTable_Erl_100
+
+    %%%------------------------------------------------------------------------
+    %%% listOrd: get index number of a name in a list of names.
+    %%%------------------------------------------------------------------------
+
+    Names = [<<"Test1">>,<<"Test2">>,<<"Test3">>,<<"Test4">>,<<"Test5">>],
+    Names2 = [<<"Test1">>],
+
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test1">>, Names), 1),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test2">>, Names), 2),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test3">>, Names), 3),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test5">>, Names), 5),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test6">>, Names), nil),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test1">>, Names2), 1),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test6">>, Names2), nil),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"">>, Names), nil),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"">>, Names2), nil),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"Test1">>, []), nil),
+    ?ERLUNIT_EQUAL(erlvolt:listOrd(<<"">>, []), nil),
 
     %*************************************************************************%
     %                                                                         %

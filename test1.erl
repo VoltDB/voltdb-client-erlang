@@ -78,6 +78,10 @@ run() ->
     %*************************************************************************%
     
     erlunit:suite("Floats"),
+    
+    exit(mees),
+    erlunit:equal(1/0, infi),
+    
 
     ?ERLUNIT_EQUAL(erlvolt:volt_float( 0.0), << 0:32>>),
     ?ERLUNIT_EQUAL(erlvolt:volt_float(-1.0), <<-1:32/float>>),
