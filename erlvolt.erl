@@ -7,34 +7,48 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 17 Apr 2010                                               %%%
-%%% Changed     : 24 May 2010                                               %%% 
+%%% Changed     : 25 May 2010                                               %%% 
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%   This API has been contributed to VoltDB by Eonblast Corporation.      %%%
-%%%                                                                         %%%
-%%%-------------------------------------------------------------------------%%%
-%%%                                                                         %%%
-%%%   Documentation: doc/index.html                                         %%%
+%%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for      %%%
+%%%   Erlang programs to talk with the VoltDB server as VoltDB clients.     %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%   THE FUTURE:                                                           %%%
+%%%   This API is being contributed to VoltDB by Eonblast Corporation.      %%%
 %%%                                                                         %%%
-%%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for an   %%%
-%%%   Erlang program  to take the place of a  VoltDB client.  Just as the   %%%
-%%%   original Java clients, Erlvolt clients:                               %%%
+%%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%   * can be multiple clients                                             %%%
-%%%   * can make synchronous or asynchronous request                        %%%
-%%%   * asynchronous requests can be fed a call back                        %%%
+%%%   STATUS                                                                %%%
 %%%                                                                         %%%
-%%%   Erlvolt communicates with the VoltDB server using the binary VoltDB   %%%
-%%%   wire protocol.  The server does not know wether it is  talking to a   %%%
-%%%   Java or an Erlang client.                                             %%%  
-%%%                                                                         %%% 
-%%%   In many cases the  Erlang  program  will itself be a server and the   %%%
-%%%   VoltDB server its database back end.  Implementation of  Erlvolt is   %%%
-%%%   as a library.                                                         %%%
+%%%   All basic functionality is implemented and unit tested. Test pro-     %%%
+%%%   grams are being written to test usability. Function signatures are    %%%
+%%%   yet to change mildly. Asynchronous calls are not yet supported.       %%%
+%%%                                                                         %%%
+%%%   REQUIREMENTS                                                          %%%
+%%%                                                                         %%%
+%%%   + VoltDB 1.0.01                                                       %%%
+%%%   + Tested on Java 1.6.0-17 (use -18+!)                                 %%%
+%%%   + Tested on Erlang R13B01                                             %%%
+%%%                                                                         %%%
+%%%   TESTS                                                                 %%%
+%%%                                                                         %%%
+%%%   + Have at least Erlang R12B-4                                         %%%
+%%%   + Get Erlunit from http://github.com/Eonblast/Erlunit/tarball/master  %%%
+%%%     and put it into subfolder erlunit, inside your Erlvolt folder.      %%%
+%%%   + From the OS command line run ./test                                 %%%
+%%%                                                                         %%%
+%%%   SAMPLE                                                                %%%
+%%%                                                                         %%%
+%%%   + From the OS command line run ./hello                                %%% 
+%%%                                                                         %%%
+%%%   DOCS                                                                  %%%
+%%%                                                                         %%%
+%%%   + point your browser to doc/index.html                                %%% 
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%     Erlvolt is used for Solar Pirates http://www.eonblast.com.          %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%

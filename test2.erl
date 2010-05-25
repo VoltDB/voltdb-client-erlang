@@ -4,7 +4,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%  
 %%% Licence     : GPLv3                                                     %%%  
 %%% Created     : 11 May 2010                                               %%%
-%%% Changed     : 17 May 2010                                               %%%
+%%% Changed     : 25 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   This is a unit test program to test the Erlvolt module ervolt.erl.    %%%
