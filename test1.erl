@@ -6,7 +6,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 25 Apr 2010                                               %%%
-%%% Changed     : 18 May 2010                                               %%%
+%%% Changed     : 25 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         
 %%%   @doc                                                                  
@@ -79,10 +79,6 @@ run() ->
     
     erlunit:suite("Floats"),
     
-    exit(mees),
-    erlunit:equal(1/0, infi),
-    
-
     ?ERLUNIT_EQUAL(erlvolt:volt_float( 0.0), << 0:32>>),
     ?ERLUNIT_EQUAL(erlvolt:volt_float(-1.0), <<-1:32/float>>),
     ?ERLUNIT_EQUAL(erlvolt:volt_float( 1.0), << 1:32/float>>),
