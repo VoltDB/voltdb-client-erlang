@@ -1,5 +1,13 @@
+echo ------------------------------------------------------------------------o--
+echo Erlvolt 0.1/alpha unit tests: compiling Erlang sources and running tests...
+echo ---------------------------------------------------------------------------
 erlc erlunit/erlunit.erl
 erlc erlvolt.erl
 erlc test1.erl; erl -s test1 run -s init stop -noshell
+erlc test2.erl; erl -s test2 run -s init stop -noshell
 erlc test4.erl; erl -s test4 run -s init stop -noshell
-echo Watch out there are two 'Overall' results displayed for now. 
+echo ---------------------------------------------------------------------------
+echo Watch out there are THREE \'Overall\' results displayed for now.  EACH should
+echo should show \'success\'. The display has a brief delay showing  each summary.
+echo ------------------------------------------------------------------------o--
+

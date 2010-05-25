@@ -6,7 +6,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 14 May 2010                                               %%%
-%%% Changed     : 24 May 2010                                               %%%
+%%% Changed     : 25 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         
 %%%   @doc                                                                  
