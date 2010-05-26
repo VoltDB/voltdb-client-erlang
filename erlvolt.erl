@@ -194,7 +194,8 @@
 			getString/2,
 			getString/3,
 			listOrd/2,
-			fetchRow/2]).
+			fetchRow/2,
+			fetchRecord/3]).
 
 
 % TODO: sort export lines.
@@ -1524,6 +1525,15 @@ fetchRow({ volttable, _, _, List}, Pos) when is_list(List) ->
 
 	lists:nth(Pos, List).
 
+%%%----------------------------------------------------------------------------
+%%% @doc Get a row out of a given table as record, by index number. First == 1.
+%%% @spec fetchRecord(volttable(), RecordTag, Pos) -> record()
+
+fetchRecord({ volttable, _, _, List}, RecordTag, Pos) when is_list(List) ->
+
+	{ voltrow, FieldList } = lists:nth(Pos, List),
+	list_to_tuple([ RecordTag | FieldList ]).
+
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a field out of a row, by index number. First == 1.
@@ -1539,10 +1549,40 @@ getField({ voltrow, List }, Pos) ->
 %%% @spec getString(voltrow(), Pos) -> binary()
 %%% TODO: is that true?
 
-getString({ voltrow, List }, Pos) when is_integer(Pos)->
+getString({ voltrow, _ }=VoltRow, Pos) when is_integer(Pos), Pos < 1 ->
+
+	throw({out_of_range, Pos, lt_one, VoltRow });
+
+getString({ voltrow, List }, Pos) when is_integer(Pos), is_list(List), Pos > length(List) ->
+
+	throw({out_of_range, Pos, length(List), List});
+
+getString({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) ->
 
 	vecho(?V, "getString( { voltrow, ~w }, ~w )", [List, Pos]),
-	to_list(lists:nth(Pos, List)).
+
+	to_list(lists:nth(Pos, List));
+
+	% TODO: make this to_binary
+
+% Note: RecPos can be expected to be = Pos+1, as it observes the preceding tag atom.
+% TODO: write tests for this variant
+
+getString(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos < 2 ->
+
+	throw({out_of_range, RecPos, lt_two, Record });
+
+getString(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos > tuple_size(Record) ->
+
+	throw({out_of_range, RecPos, tuple_size(Record) -1, Record});
+
+getString(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
+
+	vecho(?V, "getString( ~w, ~w )", [Record, RecPos]),
+
+	to_list(element(RecPos, Record)).
+	
+	% TODO: make this to_binary
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a field out of a row as string, by column name. 
