@@ -1,5 +1,14 @@
+% [This file is almost identical with ../hello.erl.]
+%
+% This sample works with the catalog and server of voltdb/examples/helloworld.
+% Start the server that you built with said Java example, go into this helloworld
+% folder and then run 
+% $> erlc ../../erlvolt.erl; erlc client.erl; erl -s client run -s init stop -noshell
+% - or -
+% run ./hello
+
 -module(client).
--import(["../../erlvolt"]).
+-import(erlvolt).
 -include("../../erlvolt.hrl").
 
 -export([run/0]).
@@ -29,19 +38,20 @@ run() ->
         %%% Retrieve the message.
         %%%
      
-        results = erlvolt:callProcedure("Select", ["Spanish"]),
+        Response = erlvolt:callProcedure(Connection, "Select", ["Spanish"]),
         
-          case results of
+          case Response of
+
               [] -> 
                   io:format("I can't say Hello in that language."),
                   exit(bad_lang);
     
-              { ok, ResultTable } ->
+              { voltresponse, _, [ Table | _ ] } ->
               
-                  Row = erlvolt:fetchRow(ResultTable, 0),
-                  io:format("~s, ~s!\n", 
-                          [ erlvolt:getString(Row, "hello"), 
-                            erlvolt:getString(Row, "world") ]);
+                  Row = erlvolt:fetchRow(Table, 1),
+                  io:format("~n~n~s, ~s!~n", 
+                          [ erlvolt:getString(Row, Table, "HELLO"), 
+                            erlvolt:getString(Row, Table, "WORLD") ]);
               
               Other -> 
                   io:format("Can't grok ~w.", [Other]),
@@ -51,6 +61,6 @@ run() ->
     catch
 
         What:Why -> 
-            io:format("~w ~w ~n ~p", [What, Why, erlang:get_stacktrace()]),
+            io:format("~n ~w ~w ~n ~p", [What, Why, erlang:get_stacktrace()]),
             exit({What, Why})
     end.
