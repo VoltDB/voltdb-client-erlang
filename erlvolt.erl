@@ -1762,7 +1762,7 @@ login(Socket, Name, Password) ->
 login(Socket, Name, Password, Mode) ->
 
     gen_tcp:send(Socket, L=volt_login(Name, Password)),
-    vecho(true, "Login: ~w", [L]),
+    vecho(?V, "Login: ~w", [L]),
     
 	case Mode of
 	
@@ -1829,7 +1829,7 @@ erl_login_response(Bin) ->
 	  BuildStringSize:32,
 	  BuildString:BuildStringSize/binary>> = Bin,
 
-	io:format("Login: ~s", [BuildString]),
+	io:format("Logged in. Server buildstring: ~s", [BuildString]),
 	
 	{ ok, { Protocol, AuthCode, HostID, ConnectionID, ClusterStart, LeaderIP, BuildString }}.
 	
@@ -1915,7 +1915,6 @@ volt_invoke(ProcedureName, Parameters, ClientData) when is_binary(ClientData) ->
 	vecho(?V, "~nSend invoke: ~w~n", [Bin]),
 
 	Bin.
-
 
 
 %*****************************************************************************%

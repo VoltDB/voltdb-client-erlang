@@ -37,16 +37,17 @@ run() ->
         Response = erlvolt:callProcedure(Connection, "Select", ["Spanish"]),
         
           case Response of
+
               [] -> 
                   io:format("I can't say Hello in that language."),
                   exit(bad_lang);
     
-              { voltresponse, _, [ Table | Tables ] } ->
+              { voltresponse, _, [ Table | _ ] } ->
               
                   Row = erlvolt:fetchRow(Table, 1),
-                  io:format("~s, ~s!\n", 
-                          [ erlvolt:getString(Row, 1), 
-                            erlvolt:getString(Row, Table, <<"WORLD">>) ]);
+                  io:format("~n~n~s, ~s!~n", 
+                          [ erlvolt:getString(Row, Table, "HELLO"), 
+                            erlvolt:getString(Row, Table, "WORLD") ]);
               
               Other -> 
                   io:format("Can't grok ~w.", [Other]),
@@ -56,6 +57,6 @@ run() ->
     catch
 
         What:Why -> 
-            io:format("~w ~w ~n ~p", [What, Why, erlang:get_stacktrace()]),
+            io:format("~n ~w ~w ~n ~p", [What, Why, erlang:get_stacktrace()]),
             exit({What, Why})
     end.
