@@ -28,7 +28,7 @@
 %%%   REQUIREMENTS                                                          %%%
 %%%                                                                         %%%
 %%%   + VoltDB 1.0.01                                                       %%%
-%%%   + Tested on Java 1.6.0-17 (use -18+)                                  %%%
+%%%   + Tested on Java 1.6.0-17 (use -18+!)                                 %%%
 %%%   + Tested on Erlang R13B01                                             %%%
 %%%                                                                         %%%
 %%%   TESTS                                                                 %%%

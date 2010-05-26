@@ -1,3 +1,8 @@
+
+% This sample works with the catalog and server of voltdb/examples/helloworld.
+% Start the server that you built with said Java example and then run 
+% $> erlc erlvolt.erl; erlc hello.erl; erl -s hello run -s init stop -noshell
+
 -module(hello).
 -import(erlvolt).
 -include("erlvolt.hrl").

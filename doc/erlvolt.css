@@ -3,6 +3,7 @@
 body          { 
   background: white;
   font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: 1em;
   margin: 0;
   padding: 0;
   border: 0;
@@ -25,9 +26,9 @@ p             { font-family: Verdana, Arial, Helvetica, sans-serif }
 .otp2         { background: #efe }
 .app          { background: #ffe }
 
-a:link         { color: blue; text-decoration: none }
-a:active       { color: blue; text-decoration: none }
-a:visited      { color: blue; text-decoration: none }
+a:link         { color: brown; text-decoration: none }
+a:active       { color: red; text-decoration: none }
+a:visited      { color: darkred; text-decoration: none }
 
 #container {
   width: 100%;
@@ -121,6 +122,25 @@ pre          { font-family: courier; font-weight: normal }
 
 footer       {  }
 
-ul.index	{ background: #f8f8ff; margin-right: 2em; padding-top: .5em; padding-bottom: .5em; }
+ul.index	{ background: #fff8f0; padding-top: .5em; padding-bottom: .5em; }
 
-a.module	{ font-weight: bold; margin-top: 2em; }
+a.module	{ font-weight: bold; margin-top: 2em; color:brown; }
+
+a			{ color:brown; }
+a:hover		{ color:orange; }
+
+h3.function	{ border-top: 1px solid brown; border-bottom: 1px solid brown; margin-top: 3em; padding-top: 0.5em; padding-bottom: 0.5em;  font-stretch: expanded;}
+
+h3.typedecl { border-top: 1px dotted brown; margin-top: 1em; padding-top: 1em; }
+
+h2	{ border-top: 1px solid brown; border-bottom: 1px solid brown; margin-top: 3em; padding-top: 2em; padding-bottom: 2em; 
+			  background-color: #fff8f0; padding-left: 0.5em; font-stretch: expanded;}
+			  
+h2.indextitle { border: 1 0 1 0 solid brown; text-align: center; margin-top: 0; padding: 0.6em; font-stretch: expanded; }	
+
+table		{ border:none; border-top: 1px solid brown; border-bottom: 1px solid brown; border-collapse: collapse; }		  
+td			{ border: none; border-top: 1px dotted brown; padding: 0.5em 0 0.5em 0; }		  
+
+body		{ margin: 1em; }
+
+hr			{ color: brown; border: none; border-bottom: 1px solid brown; }

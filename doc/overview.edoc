@@ -8,15 +8,75 @@
 %%% Author      : H. Diedrich <hd2010 at eonblast.com>                      %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 13 May 2010                                               %%%
-%%% Changed     : 18 May 2010                                               %%% 
+%%% Changed     : 25 May 2010                                               %%% 
 %%%-------------------------------------------------------------------------%%%
 
-	@copyright VoltDB, LLC - [http://www.voltdb.com]         
-	@author Eonblast Corporation - [http://www.eonblast.com]
+	@copyright 2010 VoltDB, LLC [http://www.voltdb.com]         
+	@author Eonblast Corporation [http://www.eonblast.com]
 	@author H. Diedrich <hd2010@eonblast.com>                         
 	@version 0.1/alpha
 	@title Erlvolt - Erlang VoltDB client API
-	@doc == THE FUTURE ==
+	@doc 
+
+   == Erlvolt is an Erlang interface to a VoltDB server. ==
+   
+   It allows for      
+   Erlang programs to talk with the VoltDB server as VoltDB clients. Communication between server and client is over TCP/IP sockets using the VoltDB wire protocol.
+
+
+
+	<hr />
+
+                                                                         
+   This API is being contributed to VoltDB by Eonblast Corporation.
+                                                                         
+
+	<hr />
+
+
+                                                                         
+   == STATUS ==                                                               
+                                                                         
+   All basic functionality is implemented and unit tested. Test pro-     
+   grams are being written to test usability. Function signatures are    
+   yet to change mildly. Asynchronous calls are not yet supported.       
+                                                                         
+
+   == REQUIREMENTS ==                                                          
+                                                                         
+   + VoltDB 1.0.01                       <br/>                                
+   + Tested on Java 1.6.0-17 (use -18+!) <br/>                                
+   + Tested on Erlang R13B01                                         
+                                                                         
+
+   == TESTS ==                                                                 
+                                                                         
+   + Have at least Erlang R12B-4          <br/>                               
+   + Get Erlunit from http://github.com/Eonblast/Erlunit/tarball/master   <br/> 
+   + Unzip it into subfolder erlunit, inside your Erlvolt folder      <br/>
+   + From the command line run ./test                                 
+                                                                         
+
+   == SAMPLE ==                                                                
+                                                                         
+   + From the command line run ./hello                                 
+                                                                         
+
+   == DOCS ==                                                                 
+                                                                         
+   + point your browser to doc/index.html                                 
+                                                                         
+
+	<hr />
+
+                                                                         
+    === Erlvolt is used for Solar Pirates [http://www.eonblast.com.] ===
+
+
+	<hr />
+
+
+	== THE FUTURE ==
                                                                          
    Erlvolt is an Erlang interface to a VoltDB server. It allows for an   
    Erlang program  to take the place of a  VoltDB client.  Just as the   
@@ -34,13 +94,6 @@
    VoltDB server its database back end.  Implementation of  Erlvolt is   
    as a library.         
    
-    == The Present ==                                                
-    
-    * Functions for encoding and decoding basic VoltDB types are complete.<br/>
-    * Functions for encoding and decoding arrays, VoltTables and parameters are complete.<br/>
-    * Functions for login are complete.<br/>
-    * Current work is on connection tests.<br/>
-                                                                         
     == License ==
                                                                          
     Erlvolt 0.1/alpha - an Erlang-VoltDB client API.<br/>                     

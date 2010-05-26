@@ -85,7 +85,7 @@
 %%%
 %%%    To generate up to date documentation from edoc tags, run:
 %%%
-%%%    1> edoc:files([erlvolt.erl, test1.erl],[{dir, "doc"}, {new,true}]).
+%%%    1> edoc:files([erlvolt.erl, test1.erl],[{dir, "doc"}, {new,true}, {stylesheet,"erlvolt.css"}]).
 %%%
 %%%-------------------------------------------------------------------------%%%
 
@@ -1430,10 +1430,8 @@ erl_table_feed(<<Length:32, _/binary>>=Bin) when Length > 0, is_binary(Bin) ->
 	% TODO: binary optimization may work better when not putting this in own function body?
 
 
-%%% @doc   Parse a VoltTable from VoltDB wire protocol data. 
-%%%        This variant is used by erl_table_feed.
-%%% @spec  erl_table(binary()) -> volttable() 
-%%% @see
+%%% @doc   Parse a VoltTable from VoltDB wire protocol data, return a once-nested list. 
+%%% @spec  erl_plaintable(binary()) -> volttable() 
 	
 erl_plaintable(<<Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream/binary>>=Bin) 
 	when Length > 0, is_binary(Bin) ->
@@ -1519,14 +1517,17 @@ erl_table_fields([ Type | TypesTail ], RowBinaryStream ) ->
 %                           Table Access Functions                            % 
 %*****************************************************************************%
 %%%----------------------------------------------------------------------------
-%%% @ doc  fetchRow
+%%% @doc Get a row out of a given table, by index number. First == 1.
+%%% @spec fetchRow(volttable(), Pos) -> voltrow()
+
 fetchRow({ volttable, _, _, List}, Pos) when is_list(List) ->
 
 	lists:nth(Pos, List).
 
 
 %%%----------------------------------------------------------------------------
-%%% @ doc   
+%%% @doc Get a field out of a row, by index number. First == 1.
+%%% @spec getField(voltrow(), Pos) -> term()
 
 getField({ voltrow, List }, Pos) ->
 
@@ -1534,12 +1535,19 @@ getField({ voltrow, List }, Pos) ->
 
 
 %%%----------------------------------------------------------------------------
-%%% @ doc   
+%%% @doc Get a field out of a row as string, by index number. First == 1.
+%%% @spec getString(voltrow(), Pos) -> binary()
+%%% TODO: is that true?
 
 getString({ voltrow, List }, Pos) when is_integer(Pos)->
 
 	vecho(?V, "getString( { voltrow, ~w }, ~w )", [List, Pos]),
 	to_list(lists:nth(Pos, List)).
+
+%%%----------------------------------------------------------------------------
+%%% @doc Get a field out of a row as string, by column name. 
+%%% The complete VoltTable is used to exract column names from it.
+%%% @spec getString(voltrow(), volttable(), Pos) -> binary()
 
 getString(VoltRow, VoltTable, Name) when is_list(Name) ->
 	
@@ -1553,7 +1561,7 @@ getString({ voltrow, _ }=VoltRow, VoltTable, Name) when is_binary(Name)->
 % TODO: tests
 	
 %%%----------------------------------------------------------------------------
-%%% @ doc   
+%%% @doc Return index number of a given list element.   
 
 
 listOrd(_, []) -> nil;
@@ -1597,6 +1605,8 @@ to_list(L) when is_float(L) -> float_to_list(L).
 
 %%%----------------------------------------------------------------------------
 %%% @doc  Client opens connection and logs in to the VoltDB server cluster.
+%%% Use defaults: localhost, port 21212, client name "program" and password "password". 
+%%% Login name and password can be irrelevant, check the VoltDB docs. 
 
 -define(PORT, 21212).
 
@@ -1604,17 +1614,36 @@ createConnection() ->
 
 	createConnection("localhost", ?PORT, "program", "password").
 
+%%%----------------------------------------------------------------------------
+%%% @doc  Client opens connection and logs in to the VoltDB server cluster.
+%%% Use specified host and defaults: port 21212, client name "program" and password "password". 
+%%% Login name and password can be irrelevant, check the VoltDB docs. 
+
 createConnection(Host) ->
 
 	createConnection(Host, ?PORT, "program", "password").
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Client opens connection and logs in to the VoltDB server cluster.
+%%% Use specified host, login name and password, default port 21212. 
+%%% Login name and password can be irrelevant, check the VoltDB docs. 
 
 createConnection(Host, Login, Password) ->
 
 	createConnection(Host, ?PORT, Login, Password).
 
+%%%----------------------------------------------------------------------------
+%%% @doc  Client opens connection and logs in to the VoltDB server cluster.
+%%% Specify host, port, login name and password.
+%%% Login name and password can be irrelevant, check the VoltDB docs. 
+
 createConnection(Host, Port, Login, Password) ->
 
 	open(Host, Port, Login, Password).
+
+%%%----------------------------------------------------------------------------
+%%% @private  Workhorse: Client opens connection and logs in to the VoltDB server cluster.
+%%% Login name and password can be irrelevant, check the VoltDB docs. 
 
 open(Host, Port, Login, Password) ->
 
@@ -1632,7 +1661,7 @@ open(Host, Port, Login, Password) ->
     end.
 
 %%%----------------------------------------------------------------------------
-%%% @doc  Client TCP/IP connect to the VoltDB server cluster.
+%%% @private  Workhorse: Client opens connection to the VoltDB server cluster.
 
 connect(Host, Port) ->
 
@@ -1678,8 +1707,10 @@ volt_header() ->
 	?VOLT_PROTOCOL_VERSION_BINARY.
 	
 %%%----------------------------------------------------------------------------
+%%% @doc Parse wire protocol header.
+%%% Erlang reads 4 length value bytes away by itself. See volt_header/0 (***)
 %%% @spec erl_header(binary()) -> { ProtocolVersion::integer(), Size::integer() }
-%%% throws { protocol_error, is, should }
+%%% | exception({ protocol_error, is, should })
 	
 erl_header(W) ->
 
@@ -1697,7 +1728,7 @@ erl_header(W) ->
 %                                                                             %
 %*****************************************************************************%
 %                                                                             %
-%    @doc Client log in to the VoltDB server cluster.
+%    @doc Client log in to the VoltDB server cluster, blocking.
 %
 %    The login message is the first message a client can send to a server
 %    after opening a connection. A client does not need to wait for a res-
@@ -1720,16 +1751,22 @@ erl_header(W) ->
 
 login(Socket, Name, Password) ->
 
-	login(Socket, Name, Password, true).
+	login(Socket, Name, Password, blocking).
 	
-login(Socket, Name, Password, Blocking) ->
+	
+%%%----------------------------------------------------------------------------
+%%% @doc Client log in to the VoltDB server cluster, blocking or non-blocking.
+%%% @spec login(Socket, Name, Password, blocking | atom() ) -> LoginResponse::term() | { ok, no_response_since_async } 
+
+
+login(Socket, Name, Password, Mode) ->
 
     gen_tcp:send(Socket, L=volt_login(Name, Password)),
     vecho(true, "Login: ~w", [L]),
     
-	case Blocking of
+	case Mode of
 	
-		true ->
+		blocking ->
 			
 			receive
 		
@@ -1825,7 +1862,8 @@ erl_login_response(Bin) ->
 %*****************************************************************************%
 
 %%%----------------------------------------------------------------------------
-%%% @doc  Client sends Stored Procedure call to the VoltDB server cluster.
+%%% @doc  Send a stored procedure call to the VoltDB server. 
+%%% Use a default client tag and default time out.
 
 -define(TIMEOUT, 1000).
 -define(DEFAULT_CLIENT_TAG, <<1:(8*8)>>).
@@ -1833,8 +1871,16 @@ erl_login_response(Bin) ->
 callProcedure(Socket, ProcedureName, Parameters ) ->
 	callProcedure(Socket, ProcedureName, Parameters, ?DEFAULT_CLIENT_TAG, ?TIMEOUT).
 
+%%%----------------------------------------------------------------------------
+%%% @doc  Send a stored procedure call to the VoltDB server. 
+%%% Use a specified client tag and default time out.
+
 callProcedure(Socket, ProcedureName, Parameters, ClientTag ) ->
 	callProcedure(Socket, ProcedureName, Parameters, ClientTag, ?TIMEOUT).
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Send a stored procedure call to the VoltDB server. 
+%%% Use a specified client tag and a specified time out.
 
 callProcedure(Socket, ProcedureName, Parameters, ClientData, TimeOut) ->
 
@@ -2044,6 +2090,30 @@ volt_parameter(Value) ->
 %                                                                             %
 %                                                                             %
 %*****************************************************************************%
+%%%
+%%% @type voltresponse() = 
+%%% 
+%%% 	{ voltresponse,
+%%% 	  
+%%% 	  {
+%%% 	  	Protocol, 
+%%% 		ClientData, 
+%%% 		Status, 
+%%% 		StatusString, 
+%%% 		AppStatus, 
+%%% 		AppStatusString, 
+%%% 		SerializedException,
+%%%     	RoundTripTime
+%%%       },
+%%%       
+%%%       [ volttable() ]
+%%%    
+%%% 	}.
+%%% @end
+%%%----------------------------------------------------------------------------
+%%% @doc Parse VoltDB server response  to stored procedure invocation.
+%%% @spec erl_response(wire()) -> voltresponse()
+
 
 erl_response(W) -> 
 
@@ -2100,7 +2170,7 @@ erl_response(W) ->
 	
 %%%----------------------------------------------------------------------------
 %%% @private return an empty binary, and the whole input. Or a string and rest.
-%%% @spec erl_cond_str(0 | 1) -> { String::binary(), Remainder::binary() }
+%%% @spec erl_cond_str(0 | 1, binary()) -> { String::binary(), Remainder::binary() }
 
 erl_cond_str(0, Stream) -> { <<"">>, Stream};
 
@@ -2234,6 +2304,19 @@ delete_callback({ callback_id, _} = Id) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%----------------------------------------------------------------------------
+%%% Verbose Echo
+%%%----------------------------------------------------------------------------
+%%% @doc Conditionally print String x Format to standard out.
+
+vecho(Condition, String, Format) ->
+
+	case Condition of 
+		true -> 
+			io:format("~n" ++ String ++ "~n", Format), true;
+		_ -> false
+	end.
+
+%%%----------------------------------------------------------------------------
 %%% Banner
 %%%----------------------------------------------------------------------------
 %%% @doc Prints a banner with library name and version, and a note.
@@ -2256,16 +2339,8 @@ banner(Message) ->
     ok.
 
 
-
 %%%-----------------------------------°%°-----------------------------------%%%
 
-vecho(Condition, String, Format) ->
-
-	case Condition of 
-		true -> 
-			io:format("~n" ++ String ++ "~n", Format), true;
-		_ -> false
-	end.
 	
 	
 		
