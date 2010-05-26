@@ -45,7 +45,7 @@ run() ->
               { voltresponse, _, [ Table | _ ] } ->
               
                   Row = erlvolt:fetchRow(Table, 1),
-                  io:format("~n~n~s, ~s!~n", 
+                  io:format("~n~n~s, ~s!~n~n", 
                           [ erlvolt:getString(Row, Table, "HELLO"), 
                             erlvolt:getString(Row, Table, "WORLD") ]);
               
@@ -55,7 +55,13 @@ run() ->
         end
 
     catch
-
+		throw:{ open_failed, _, _}=Why ->
+			io:format("~n-------------------------------------------------------------------------------~n"),
+            io:format("Failed to open server connection.~nIs the VoltDB server running and accessible?"),
+			io:format("~n-------------------------------------------------------------------------------~n"),
+            io:format("Error details: ~n ~w ~w ~n ~p", [throw, Why, erlang:get_stacktrace()]),
+            exit({throw, Why});
+		
         What:Why -> 
             io:format("~n ~w ~w ~n ~p", [What, Why, erlang:get_stacktrace()]),
             exit({What, Why})

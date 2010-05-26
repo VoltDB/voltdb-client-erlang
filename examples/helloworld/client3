@@ -1,17 +1,18 @@
-# [This file is almost identical with the script ../../hello.]
+# This client demonstrate access to columns via congruent record fields.
+
 # This sample works with the catalog and server of voltdb/examples/helloworld.
 # Run the server you built with said Java example and then run ./hello in this dir.
  
 echo -------------------------------------------------------------------------------
-echo Erlvolt Hello World
+echo Erlvolt Hello World \(Client \#3\)
 echo -------------------------------------------------------------------------------
 
 echo Compiling ...
 erlc ../../erlvolt.erl
-erlc client.erl;
+erlc client3.erl;
 
 echo Running ...
-erl -s client run -s init stop -noshell
+erl -s client3 run -s init stop -noshell
 
 echo -------------------------------------------------------------------------------
 echo Be aware that it is desired behavior that you will receive multiple

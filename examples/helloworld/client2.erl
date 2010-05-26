@@ -1,13 +1,15 @@
-% [This file is almost identical with ../../hello.erl.]
+% This client demonstrate access via column numbers.
 %
 % This sample works with the catalog and server of voltdb/examples/helloworld.
 % Start the server that you built with said Java example, go into this helloworld
 % folder and then run 
-% $> erlc ../../erlvolt.erl; erlc client.erl; erl -s client run -s init stop -noshell
+% $> erlc ../../erlvolt.erl; erlc client2.erl; erl -s client2 run -s init stop -noshell
+%
 % - or -
-% run ./hello
+%
+% run ./client2
 
--module(client).
+-module(client2).
 -import(erlvolt).
 -include("../../erlvolt.hrl").
 
@@ -50,13 +52,27 @@ run() ->
               
                   Row = erlvolt:fetchRow(Table, 1),
                   io:format("~n~n~s, ~s!~n", 
-                          [ erlvolt:getString(Row, Table, "HELLO"), 
-                            erlvolt:getString(Row, Table, "WORLD") ]);
+	    
+	    %-------------------------------------------------------------------------%
+	    %                 Use this faster notation of column numbers:             %
+	    %-------------------------------------------------------------------------%
+	    
+                          [ erlvolt:getString(Row, 1), 
+                            erlvolt:getString(Row, 2) ]);
+
+	    %-------------------------------------------------------------------------%
+		%                 Instead of:                                             %
+		%                                                                         %
+		%                 [ erlvolt:getString(Row, Table, "HELLO"),               %
+		%                   erlvolt:getString(Row, Table, "WORLD") ]);            %
+	    %-------------------------------------------------------------------------%
               
               Other -> 
                   io:format("Can't grok ~w.", [Other]),
                   exit(bad_result)
-        end
+        end,
+	
+    	io:format("~n(This was client2)~n") 
 
     catch
 
