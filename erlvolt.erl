@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.erl                                               %%%
-%%% Version     : 0.1/alpha                                                 %%%
+%%% Version     : 0.1.01/alpha                                              %%%
 %%% Description : Erlang-VoltDB client API                                  %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 17 Apr 2010                                               %%%
-%%% Changed     : 25 May 2010                                               %%%
+%%% Changed     : 26 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for      %%%
@@ -33,7 +33,7 @@
 %%%                                                                         %%%
 %%%   TESTS                                                                 %%%
 %%%                                                                         %%%
-%%%   + Have at least Erlang R12B-4                                         %%%
+%%%   + Have at least Erlang R13B-1                                         %%%
 %%%   + Get Erlunit from http://github.com/Eonblast/Erlunit/tarball/master  %%%
 %%%     and put it into subfolder erlunit, inside your Erlvolt folder.      %%%
 %%%   + From the OS command line run ./test                                 %%%
@@ -52,7 +52,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.1/alpha - an Erlang-VoltDB client API.                     %%%
+%%%    Erlvolt 0.1.01/alpha - an Erlang-VoltDB client API.                  %%%
 %%%    Copyright (C) 2010 VoltDB, LLC http://www.voltdb.com                 %%%
 %%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
 %%%                                                                         %%%
@@ -91,12 +91,12 @@
 
 -module(erlvolt).
 
--vsn("0.1/alpha").
+-vsn("0.1.01/alpha").
 -author("H. Diedrich <hd2010@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.1/alpha").
+-define(VERSION, "0.1.01/alpha").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB Client API").
 
@@ -193,6 +193,8 @@
             getField/2,
             getString/2,
             getString/3,
+            getString_or_null/2,
+            getString_or_null/3,
             listOrd/2,
             fetchRow/2,
             fetchRecord/3]).
@@ -1130,51 +1132,61 @@ erl_any(T,_) -> throw({ bad_type, T }).
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang integer from a TINYINT (8 bit) VoltDB wire type.
 %% @spec erl_tinyint_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_tinyint_feed  (<<Element:?VOLT_TINYINT_TYPE,    Rest/binary>>) -> { Element, Rest }.
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang integer from a SMALLINT (16 bit) VoltDB wire type.
 %% @spec erl_smallint_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_smallint_feed (<<Element:?VOLT_SMALLINT_TYPE,   Rest/binary>>) -> { Element, Rest }.
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang integer from an INTEGER (32 bit) VoltDB wire type.
 %% @spec erl_intint_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_intint_feed   (<<Element:?VOLT_INTINT_TYPE,     Rest/binary>>) -> { Element, Rest }.
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang integer from a BIGINT (64 bit) VoltDB wire type.
 %% @spec erl_bigint_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest/binary>>) -> { Element, Rest }.
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang float from a float VoltDB wire type.
 %% @spec erl_float_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest/binary>>) -> { erl_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' sensible?
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang null value from a NULL string VoltDB wire type.
 %% @spec erl_string_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_string_feed   (<<?VOLT_STRING_NULL,             Rest/binary>>) -> { null, Rest };
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang binary string from an empty string VoltDB wire type.
 %% @spec erl_string_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_string_feed   (<<?VOLT_STRING_EMPTY,            Rest/binary>>) -> { <<"">>, Rest };
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang binary string from a string VoltDB wire type.
 %% @spec erl_string_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_string_feed   (<<?VOLT_STRING_BINARY(Binary),   Rest/binary>>) -> { Binary, Rest }.
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang value from a timestamp VoltDB wire type.
 %% @spec erl_timestamp_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest/binary>>) -> { erl_time(Binary), Rest }.
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang value from a decimal VoltDB wire type.
 %% @spec erl_decimal_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
+
 erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' sensible?
 
 % for erl_array_feed see above
@@ -1288,6 +1300,8 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_numb
 %    --- pg. 168 Erlang/OTP System Documentation 5.7.5 02/22/10 ---           %
 %                                                                             %
 %******************************************************************************
+
+%%% TODO: type names logic
 
 %%% @type  volttable()    = { volttable, rows(), column_names(), column_types() }.
 %%% @type  rows()         = [row()].
@@ -1603,7 +1617,55 @@ getString(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
     % TODO: make this to_binary
 
 %%%----------------------------------------------------------------------------
-%%% @doc Get a field out of a row as string, by column name.
+%%% @doc Get a field out of a row as string, by index number; null when Pos bad.
+%%% @spec getString_or_null(voltrow(), Pos) -> binary()
+%%% TODO: is that true?
+
+getString_or_null({ voltrow, _ }, Pos) when is_integer(Pos), Pos < 1 ->
+
+    null;
+
+getString_or_null({ voltrow, List }, Pos) when is_integer(Pos), is_list(List), Pos > length(List) ->
+
+    null;
+
+getString_or_null({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) ->
+
+    vecho(?V, "getString_or_null( { voltrow, ~w }, ~w )", [List, Pos]),
+
+	try
+	    to_list(lists:nth(Pos, List))
+	catch
+        _:_ -> null
+    end;
+
+    % TODO: make this to_binary
+
+% Note: RecPos can be expected to be = Pos+1, as it observes the preceding tag atom.
+% TODO: write tests for this variant
+
+getString_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos < 2 ->
+
+    null;
+
+getString_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos > tuple_size(Record) ->
+
+    null;
+
+getString_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
+
+    vecho(?V, "getString_or_null( ~w, ~w )", [Record, RecPos]),
+
+    try
+        to_list(element(RecPos, Record))
+	catch
+        _:_ -> null
+    end.
+
+    % TODO: make this to_binary
+
+%%%----------------------------------------------------------------------------
+%%% @doc Get a field out of a row as string, by column name; error when not found.
 %%% The complete VoltTable is used to exract column names from it.
 %%% @spec getString(voltrow(), volttable(), Pos) -> binary()
 
@@ -1614,15 +1676,35 @@ getString(VoltRow, VoltTable, Name) when is_list(Name) ->
 getString({ voltrow, _ }=VoltRow, VoltTable, Name) when is_binary(Name)->
 
     { volttable, ColumnNames, _ColumnTypes, _Rows } = VoltTable,
-    getString(VoltRow, listOrd(Name, ColumnNames)).
 
-% TODO: tests
+	Index = listOrd(Name, ColumnNames),
+	Index /= nil orelse erlang:error({bad_column_name, Name, ColumnNames}),
+	
+    getString(VoltRow, Index).
+
+
+%%%----------------------------------------------------------------------------
+%%% @doc Get a field out of a row as string, by column name; null when not found.
+%%% The complete VoltTable is used to exract column names from it.
+%%% @spec getString_or_null(voltrow(), volttable(), Pos) -> binary()
+
+getString_or_null(VoltRow, VoltTable, Name) when is_list(Name) ->
+
+    getString_or_null(VoltRow, VoltTable, list_to_binary(Name));
+
+getString_or_null({ voltrow, _ }=VoltRow, VoltTable, Name) when is_binary(Name)->
+
+    { volttable, ColumnNames, _ColumnTypes, _Rows } = VoltTable,
+
+	case Index = listOrd(Name, ColumnNames) of
+		nil -> null;
+		_ -> getString_or_null(VoltRow, Index)
+	end.
+
 
 %%%----------------------------------------------------------------------------
 %%% @doc Return index number of a given list element.
 
-
-listOrd(_, []) -> nil;
 
 listOrd(Searched, List) when is_list(List) ->
 
@@ -1630,15 +1712,17 @@ listOrd(Searched, List) when is_list(List) ->
 
 listOrd(_, [], _) -> nil;
 
-listOrd(Searched, [ Element | Tail ], Count) ->
+listOrd(Searched, [ Searched | _ ], Count) ->
 
-    case Searched == Element of
-        true -> Count;
-        _ -> listOrd(Searched, Tail, Count + 1)
-    end.
+    Count;
+
+listOrd(Searched, [ _ | Tail ], Count) ->
+
+    listOrd(Searched, Tail, Count + 1).
 
 %%%----------------------------------------------------------------------------
-%%% @ doc
+%%% @doc Convert binaries, integers or floats to 'strings'.
+%%% @spec to_list( list() | binary() | integer() | float() ) -> list().
 
 
 to_list(L) when is_list(L) -> L;

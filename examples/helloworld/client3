@@ -1,4 +1,4 @@
-# This client demonstrate access to columns via congruent record fields.
+# This client demonstrates access to columns via congruent record fields.
 
 # This sample works with the catalog and server of voltdb/examples/helloworld.
 # Run the server you built with said Java example and then run ./hello in this dir.

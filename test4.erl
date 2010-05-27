@@ -746,6 +746,26 @@ run() ->
     ?ERLUNIT_FAIL (erlvolt:getString({ voltrow, [ ]}, VoltTable_Erl_100, <<"Test1">>)), % Test1 is present in VoltTable_Erl_100
 
     %%%------------------------------------------------------------------------
+    %%% getString_or_null: get as string (list) out of a row.
+    %%%------------------------------------------------------------------------
+
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, 1), "1"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, 2), "2"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, 3), "3"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, 4), null),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ 1,2,3 ]}, 3), "3"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ 1,2,3 ]}, 4), null),
+
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test1">>), "1"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test2">>), "2"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test3">>), "3"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ "1","2","3" ]}, VoltTable_Erl_100, <<"Test4">>), null), % Test4 is present in VoltTable_Erl_100
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ 1,2,3 ]}, VoltTable_Erl_100, <<"Test3">>), "3"),
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ 1,2,3 ]}, VoltTable_Erl_100, <<"TestX">>), null), % TestX is not present in VoltTable_Erl_100
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ 1,2,3 ]}, VoltTable_Erl_100, <<"Test4">>), null), % Test4 is present in VoltTable_Erl_100
+    ?ERLUNIT_EQUAL(erlvolt:getString_or_null({ voltrow, [ ]}, VoltTable_Erl_100, <<"Test1">>), null), % Test1 is present in VoltTable_Erl_100
+    
+    %%%------------------------------------------------------------------------
     %%% listOrd: get index number of a name in a list of names.
     %%%------------------------------------------------------------------------
 

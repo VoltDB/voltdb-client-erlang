@@ -1,4 +1,4 @@
-% This client demonstrate access via record definition.
+% This client demonstrates access via record definition.
 %
 % This sample works with the catalog and server of voltdb/examples/helloworld.
 % Start the server that you built with said Java example, go into this helloworld
