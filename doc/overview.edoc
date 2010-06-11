@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : overview.edoc                                             %%% 
-%%% Version     : 0.1.01/alpha                                              %%%
+%%% Version     : 0.1.02/alpha                                              %%%
 %%% Description : Intro to Documentation of Erlang-VoltDB client API        %%%
 %%% Use         : EDoc Erlang source code documentation                     %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
@@ -14,7 +14,7 @@
 	@copyright 2010 VoltDB, LLC [http://www.voltdb.com]         
 	@author Eonblast Corporation [http://www.eonblast.com]
 	@author H. Diedrich <hd2010@eonblast.com>                         
-	@version 0.1.01/alpha    
+	@version 0.1.02/alpha    
 	@title Erlvolt - Erlang VoltDB client API
 	@doc 
 
@@ -96,7 +96,7 @@
    
     == License ==
                                                                          
-    Erlvolt 0.1.01/alpha - an Erlang-VoltDB client API.<br/>                     
+    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.<br/>                     
     Copyright (C) 2010 VoltDB, LLC [http://www.voltdb.com]<br/>
     Author H. Diedrich hd2010@eonblast.com [http://www.eonblast.com]
                                                                          

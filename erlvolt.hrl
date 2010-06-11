@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.hrl                                               %%%
-%%% Version     : 0.1.01/alpha                                              %%%
+%%% Version     : 0.1.02/alpha                                              %%%
 %%% Description : Erlang-VoltDB client API                                  %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
@@ -13,6 +13,29 @@
 %%%   For more info, see erlvolt.erl.                                       %%%
 %%%                                                                         %%%
 %%%   TODO: Why is this file not part of erlvolt.erl?                       %%%
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%                                                                         %%%
+%%%    This file is part of VoltDB.                                         %%%
+%%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
+%%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
+%%%                                                                         %%%
+%%%    Copyright (C) 2008-2010 VoltDB L.L.C.                                %%%
+%%%                                                                         %%%
+%%%    VoltDB is free software:  you can redistribute it  and/or  modify    %%%
+%%%    it under the terms of the GNU General Public License as published    %%%
+%%%    by the Free Software Foundation, either version 3 of the License,    %%%
+%%%    or (at your option) any later version.                               %%%
+%%%                                                                         %%%
+%%%    VoltDB  is distributed  in the hope  that it will be useful,  but    %%%
+%%%    WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty of    %%%
+%%%    MERCHANTABILITY  or  FITNESS  FOR A  PARTICULAR PURPOSE.  See the    %%%
+%%%    GNU General Public License for more details.                         %%%
+%%%                                                                         %%%
+%%%    You should have received a copy of the GNU General Public License    %%%
+%%%    along with  VoltDB.  If not,  see <http://www.gnu.org/licenses/>.    %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 

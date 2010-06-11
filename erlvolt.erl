@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.erl                                               %%%
-%%% Version     : 0.1.01/alpha                                              %%%
+%%% Version     : 0.1.02/alpha                                              %%%
 %%% Description : Erlang-VoltDB client API                                  %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 17 Apr 2010                                               %%%
-%%% Changed     : 26 May 2010                                               %%%
+%%% Changed     : 11 Jun 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for      %%%
@@ -52,22 +52,24 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.1.01/alpha - an Erlang-VoltDB client API.                  %%%
-%%%    Copyright (C) 2010 VoltDB, LLC http://www.voltdb.com                 %%%
+%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%                                                                         %%%
+%%%    This file is part of VoltDB.                                         %%%
+%%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
 %%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
 %%%                                                                         %%%
-%%%    This program is  free software:  you can redistribute it and / or    %%%
-%%%    modify it  under the terms of the  GNU  General Public License as    %%%
-%%%    published  by the Free Software Foundation,  either version  3 of    %%%
-%%%    the License,  or (at your option) any later version.                 %%%
+%%%    VoltDB is free software:  you can redistribute it  and/or  modify    %%%
+%%%    it under the terms of the GNU General Public License as published    %%%
+%%%    by the Free Software Foundation, either version 3 of the License,    %%%
+%%%    or (at your option) any later version.                               %%%
 %%%                                                                         %%%
-%%%    This program is distributed  in the hope  that it will be useful,    %%%
-%%%    but  WITHOUT ANY WARRANTY;  without  even the implied warranty of    %%%
-%%%    MERCHANTABILITY  or  FITNESS FOR  A PARTICULAR PURPOSE.  See  the    %%%
+%%%    VoltDB  is distributed  in the hope  that it will be useful,  but    %%%
+%%%    WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty of    %%%
+%%%    MERCHANTABILITY  or  FITNESS  FOR A  PARTICULAR PURPOSE.  See the    %%%
 %%%    GNU General Public License for more details.                         %%%
 %%%                                                                         %%%
 %%%    You should have received a copy of the GNU General Public License    %%%
-%%%    along with this program. If not, see <http://www.gnu.org/licenses/>. %%%
+%%%    along with  VoltDB.  If not,  see <http://www.gnu.org/licenses/>.    %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%
@@ -91,12 +93,12 @@
 
 -module(erlvolt).
 
--vsn("0.1.01/alpha").
+-vsn("0.1.02/alpha").
 -author("H. Diedrich <hd2010@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.1.01/alpha").
+-define(VERSION, "0.1.02/alpha").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB Client API").
 
@@ -150,7 +152,7 @@
             get_callback_or_nil/1,
             get_callback/1,
             help/0,
-            milli_epoch/1,
+            micro_epoch/1,
             resolve_callback/2,
             volt_array/1, volt_array/2,
             volt_byte/1,
@@ -605,31 +607,29 @@ erl_string_or_null(<<?VOLT_STRING_BINARY(String)>>) ->
 
 
 %*****************************************************************************%
-%                                    Time                                     %
+%                                    Time                                     % 
 %*****************************************************************************%
 %                                                                             %
-% Volt:  All dates are represented on the wire as Long values.  This signed   %
-% number represents milliseconds before  or after  Jan. 1 1970 00:00:00 GMT,  %
-% the Unix epoch. This covers roughly 4000BC to 8000AD.                       %
+%   Volt: All dates are represented on the wire as Long values.  This signed  %
+%   number represents the number of microseconds (not the usual milliseconds  %
+%   before or after Jan. 1 1970 00:00:00 GMT, the Unix epoch.                 %
 %                                                                             %
-% --- pg. 2, VoltDB Client Wire Protocol Version 0, 12/11/09 ---              %
+%   --- pg. 2, VoltDB Client Wire Protocol Version 0, 06/02/10 ---            %
 %                                                                             %
-% Erlang Standard: {Date,Time} = {{Hour,Minutes,Seconds}, {Year,Month,Day}}.  %
-% Unique Timestamps: {Megaseconds,Seconds,Microseconds} = erlang:now() from   %
-% 1/1/19070 0:00.  erlang:now()  is  guaranteed  to deliver  unique results.  %
-% Note that  erlang:now()  and  erlang:universal_time()  can be out of sync,  %
-% as an Erlang 'feature': now() is guaranteed deliver a *unique* timestamps   %
-% on every call, and is used for timers,  so is only slowly altered even in   %
-% cases where universal_time() is abruptly changed by external action.        %
+%  Erlang Standard: {Date,Time} = {{Hour,Minutes,Seconds}, {Year,Month,Day}}. %
+%  Unique Timestamps: {Megaseconds,Seconds,Microseconds} = erlang:now() from  %
+%  1/1/19070 0:00.  erlang:now()  is  guaranteed  to deliver  unique results. %
+%  Note that  erlang:now()  and  erlang:universal_time()  can be out of sync, %
+%  as an Erlang 'feature': now() is guaranteed deliver a *unique* timestamps  %
+%  on every call, and is used for timers,  so is only slowly altered even in  %
+%  cases where universal_time() is abruptly changed by external action.       %
 %                                                                             %
-% Samples: erlang:now() -> {1272,805301,939371}                               %
-% calendar:now_to_datetime({1272,805301,939371}) -> {{2010,5,2},{13,1,41}}.   %
+%  Samples: erlang:now() -> {1272,805301,939371}                              %  
+%  calendar:now_to_datetime({1272,805301,939371}) -> {{2010,5,2},{13,1,41}}.  %
 %                                                                             %
-% Regarding the use of BILLION below, remember that Volt uses MILLI-seconds:  %
-% 1 megasec == 1 billion millisec == 1 trillion microsec.                     %
+%  1 megasec == 1 billion millisec == 1 trillion microsec.                    %
 %                                                                             %
 %%%-------------------------------------------------------------------------%%%
-
 
 -define(VOLT_TIME_BINARY_TYPE(V), <<V:64/signed-big>>).
 
@@ -650,7 +650,7 @@ erl_string_or_null(<<?VOLT_STRING_BINARY(String)>>) ->
 volt_time({Mega, Sec, Micro}) when is_integer(Mega), is_integer(Sec),
     is_integer(Micro) ->
 
-    volt_time_binary(milli_epoch({Mega, Sec, Micro}));
+    volt_time_binary(micro_epoch({Mega, Sec, Micro}));
 
 
 %%%----------------------------------------------------------------------------
@@ -659,42 +659,42 @@ volt_time({Mega, Sec, Micro}) when is_integer(Mega), is_integer(Sec),
 volt_time({Date,Time}) ->
 
     UnixEpoch = {{1970,1,1},{0,0,0}},
-    MilliEpoch = (calendar:datetime_to_gregorian_seconds({Date,Time})
+    MicroEpoch = (calendar:datetime_to_gregorian_seconds({Date,Time})
         - calendar:datetime_to_gregorian_seconds(UnixEpoch))
-        * 1000,
-    volt_time_binary(MilliEpoch);
+        * ?MILLION,
+    volt_time_binary(MicroEpoch);
 
 
 %%%----------------------------------------------------------------------------
-%%% UTC time to VoltDB wire code time binary
+%%% UTC time (seconds since epoch) to VoltDB wire code time binary
 
 volt_time(UTC) when is_integer(UTC) ->
 
-    volt_time_binary(UTC * 1000).
+    volt_time_binary(UTC * ?MILLION).
 
 
 %%%----------------------------------------------------------------------------
 %%% @doc Over/Underrun guards and cast to binary
 
-volt_time_binary(MilliEpoch) when MilliEpoch < ?VOLT_TIME_MIN ->
+volt_time_binary(MicroEpoch) when MicroEpoch < ?VOLT_TIME_MIN ->
 
     erlang:error(time_underrun);
 
-volt_time_binary(MilliEpoch) when MilliEpoch > ?VOLT_TIME_MAX ->
+volt_time_binary(MicroEpoch) when MicroEpoch > ?VOLT_TIME_MAX ->
 
     erlang:error(time_overrun);
 
-volt_time_binary(MilliEpoch) when is_integer(MilliEpoch) ->
+volt_time_binary(MicroEpoch) when is_integer(MicroEpoch) ->
 
-    ?VOLT_TIME_BINARY_TYPE(MilliEpoch).
+    ?VOLT_TIME_BINARY_TYPE(MicroEpoch).
 
 
 %%%----------------------------------------------------------------------------
 %%% @doc actual calculation 'now' format to VoltDB wire format
 
-milli_epoch({Mega, Sec, Micro}) ->
+micro_epoch({Mega, Sec, Micro}) ->
 
-    Mega * ?BILLION + Sec * 1000 + trunc(Micro / 1000).
+    Mega * ?TRILLION + Sec * ?MILLION + Micro.
 
 
 %%%-decode----------------------------------------------------------------time-
@@ -711,12 +711,14 @@ erl_datetime(?VOLT_TIME_BINARY_TYPE(Int)=V) when is_binary(V) ->
 %%%----------------------------------------------------------------------------
 %%% @doc VoltDB wire code time from binary to Erlang 'Now' format.
 %%% Note: the 'now' format in Erlang means {Megasecs, Secs, Microsecs}.
-%%% Because this 'now' can be confusing to read for, say, devs coming from Java,
-%%% there are synomyms introduced, leaving the 'now' out: erl_time().
+%%% Because the term 'now' may be confusing to read for, say, devs coming from,
+%%% Java there are synomyms introduced, leaving the 'now' out: erl_time().
 %%%
 %%% Alternate Variant:
+%%%
 %%% VoltDB wire code time from integer to Erlang 'Now' format.
-%%% Integer input represents an interm'ry. step but might come in handy somewhere.
+%%% Integer input represents an intermediary step but might come in handy
+%%% someplace.
 %%%
 %%% @spec erl_nowtime(wire() | integer()) -> {Megasecs, Secs, Microsecs}
 
@@ -727,9 +729,9 @@ erl_nowtime(?VOLT_TIME_BINARY_TYPE(VInt)=V) when is_binary(V) ->
 
 erl_nowtime(V) when is_integer(V) -> % TODO: make better
 
-    Mega  = trunc(V / ?BILLION),
-    Sec   = trunc((V - Mega * ?BILLION) / 1000),
-    Micro = (V - Mega * ?BILLION - Sec * 1000) * 1000,
+    Mega  = trunc(V / ?TRILLION),
+    Sec   = trunc((V - Mega * ?TRILLION) / ?MILLION),
+    Micro = (V - Mega * ?TRILLION - Sec * ?MILLION),
     {Mega, Sec, Micro}.
 
 
@@ -754,10 +756,11 @@ erl_unixtime(?VOLT_TIME_BINARY_TYPE(VInt)=V) when is_binary(V) ->
 
 %%%----------------------------------------------------------------------------
 %%% @doc Unix epoch seconds from VoltDB wire code time long integer.
+%%% @spec erl_unixtime(epoch_microseconds::int()) -> epoch_seconds::int()
 
 erl_unixtime(V) when is_integer(V) ->
 
-    trunc(V / 1000).  % -> int() Seconds since 1/1/1970 0:00 GMT;
+    trunc(V / ?MILLION).  % -> int() Seconds since 1/1/1970 0:00 GMT;
 
 
 %*****************************************************************************%
@@ -2004,10 +2007,14 @@ erl_login_response(Bin) ->
 %*****************************************************************************%
 
 %%%----------------------------------------------------------------------------
+%%% Synchronous / blocking
+%%%----------------------------------------------------------------------------
+
+%%%----------------------------------------------------------------------------
 %%% @doc  Send a stored procedure call to the VoltDB server.
 %%% Use a default client tag and default time out.
 
--define(TIMEOUT, 1000).
+-define(TIMEOUT, 1000). % ms
 -define(DEFAULT_CLIENT_TAG, <<1:(8*8)>>).
 
 callProcedure(Socket, ProcedureName, Parameters ) ->
@@ -2042,7 +2049,50 @@ callProcedure(Socket, ProcedureName, Parameters, ClientData, TimeOut) ->
 
     end.
 
+%%%----------------------------------------------------------------------------
+%%% Asynchronous / non-blocking
+%%%----------------------------------------------------------------------------
 
+%%%----------------------------------------------------------------------------
+%%% @doc Send an asynch stored procedure call to the VoltDB server, with callback.
+%%% TODO: not --- Use a default client tag and default time out.
+%
+%-define(TIMEOUT, 1000). % ms
+%-define(DEFAULT_CLIENT_TAG, <<1:(8*8)>>).
+%
+%callProcedureAsync(Socket, ProcedureName, Parameters ) ->
+%    callProcedure(Socket, ProcedureName, Parameters, ?DEFAULT_CLIENT_TAG, ?TIMEOUT).
+%
+%%%----------------------------------------------------------------------------
+%%% @doc  Send a stored procedure call to the VoltDB server.
+%%% Use a specified client tag and default time out.
+%
+%callProcedureAsync(Socket, ProcedureName, Parameters, ClientTag ) ->
+%   callProcedure(Socket, ProcedureName, Parameters, ClientTag, ?TIMEOUT).
+%
+%%%----------------------------------------------------------------------------
+%%% @doc  Send a stored procedure call to the VoltDB server.
+%%% Use a specified client tag and a specified time out.
+%
+%callProcedureAsync(Socket, ProcedureName, Parameters, ClientData, TimeOut) ->
+%
+%    gen_tcp:send(Socket, volt_invoke(ProcedureName, Parameters, ClientData)),
+%
+%    receive
+%
+%        {tcp,Socket,ResultBin} ->
+%
+%            erl_response(ResultBin);
+%
+%        Else -> erlang:error({ unexpected_response_format, Else })
+%
+%    after TimeOut ->
+%
+%        erlang:throw({receive_time_out, ProcedureName, Parameters})
+%
+%    end.
+%
+%
 %%%----------------------------------------------------------------------------
 %%% @doc  Make VoltDB wire binary for login message from name and password.
 
@@ -2054,7 +2104,7 @@ volt_invoke(ProcedureName, Parameters, ClientData) when is_binary(ClientData) ->
 
     Bin = <<H/binary, N/binary, ClientData/binary, P/binary>>,
 
-    vecho(?V, "~nSend invoke: ~w~n", [Bin]),
+   vecho(?V, "~nSend invoke: ~w~n", [Bin]),
 
     Bin.
 

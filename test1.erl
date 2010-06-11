@@ -6,7 +6,28 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 25 Apr 2010                                               %%%
-%%% Changed     : 25 May 2010                                               %%%
+%%% Changed     : 11 Jun 2010                                               %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%                                                                         %%%
+%%%    This file is part of VoltDB.                                         %%%
+%%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
+%%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
+%%%                                                                         %%%
+%%%    VoltDB is free software:  you can redistribute it  and/or  modify    %%%
+%%%    it under the terms of the GNU General Public License as published    %%%
+%%%    by the Free Software Foundation, either version 3 of the License,    %%%
+%%%    or (at your option) any later version.                               %%%
+%%%                                                                         %%%
+%%%    VoltDB  is distributed  in the hope  that it will be useful,  but    %%%
+%%%    WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty of    %%%
+%%%    MERCHANTABILITY  or  FITNESS  FOR A  PARTICULAR PURPOSE.  See the    %%%
+%%%    GNU General Public License for more details.                         %%%
+%%%                                                                         %%%
+%%%    You should have received a copy of the GNU General Public License    %%%
+%%%    along with  VoltDB.  If not,  see <http://www.gnu.org/licenses/>.    %%%
+%%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         
 %%%   @doc                                                                  
@@ -42,6 +63,7 @@
 -export([run/0]).
 -import(unicode).
 
+-define(TRILLION, 1000000000000). % for clarity and to prevent typos.
 -define(BILLION, 1000000000). % for clarity and to prevent typos.
 -define(MILLION, 1000000   ).
 
@@ -523,45 +545,47 @@ run() ->
 
     % from Erlang 'now' time format
     ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,0}),      <<0:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,1}),      <<0:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,999}),    <<0:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,1000}),   <<1:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,1001}),   <<1:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,10,0}),     <<10000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,0,999}),    <<1000000000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,0,1000}),   <<1000000001:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,0,1001}),   <<1000000001:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,0}),     <<(?BILLION+10*1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,1}),     <<(?BILLION+10*1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,999}),   <<(?BILLION+10*1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,1000}),  <<(?BILLION+10*1000+1):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(Now),          <<(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,1}),      <<1:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,999}),    <<999:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,1000}),   <<1000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,0,1001}),   <<1001:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({0,10,0}),     <<10000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,0,999}),    <<1000000000999:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,0,1000}),   <<1000000001000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,0,1001}),   <<1000000001001:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,0}),     <<(?TRILLION+10*?MILLION):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,1}),     <<(?TRILLION+10*?MILLION+1):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,999}),   <<(?TRILLION+10*?MILLION+999):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1,10,1000}),  <<(?TRILLION+10*?MILLION+1000):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({1183,792027,0}),  <<0,4,52,167,15,65,220,192>>), % TODO: verify
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(Now),          <<(Mega*?TRILLION + Sec * ?MILLION + Micro):64>>),
 
-    ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({0,0,-1}),      <<0,0,0,0,0,0,0,0>>, "Catch negative 'now format' input"),
-    ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({0,-1,1000}),   <<255,255,255,255,255,255,252,25>>, "Catch negative 'now format' input"),
-    ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({-1,0,-999}),   <<255,255,255,255,196,101,54,0>>, "Catch negative 'now format' input"),
-    ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({-1,1,-1001}),  <<255,255,255,255,196,101,57,231>>, "Catch negative 'now format' input"),
+%   ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({0,0,-1}),      <<0,0,0,0,0,0,0,0>>, "Catch negative 'now format' input"),
+%   ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({0,-1,1000}),   <<255,255,255,255,255,255,252,25>>, "Catch negative 'now format' input"),
+%   ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({-1,0,-999}),   <<255,255,255,255,196,101,54,0>>, "Catch negative 'now format' input"),
+%   ?ERLUNIT_EQUAL_MSG(erlvolt:volt_time({-1,1,-1001}),  <<255,255,255,255,196,101,57,231>>, "Catch negative 'now format' input"),
 
 
     % from Erlang datetime
     ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,1,1},{0,0,0}}),      <<0:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1969,12,31},{23,59,59}}), <<-1000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,1,1},{0,0,1}}),      <<1000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,59}}), <<(365*24*60*60*1000-1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,59}}), <<0,0,0,7,87,177,40,24>>),               % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,1,10},{1,1,1}}),     <<0,0,0,0,46,145,24,200>>),              % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,10,1},{1,1,1}}),     <<0,0,0,5,126,31,248,200>> ),            % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{2010,3,3},{12,0,0}}),     <<0,0,1,39,35,229,146,0>>),              % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1950,2,2},{23,59,59}}),   <<255,255,255,109,182,90,156,24>>),      % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{2000,10,10},{10,10,10}}), <<0,0,0,226,30,101,255,208>>),           % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{0,1,1},{0,0,0}}),         <<255,255,199,117,144,251,160,0>>),      % TODO: verify
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1969,12,31},{23,59,59}}), <<-1000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,1,1},{0,0,1}}),      <<1000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,59}}), <<(365*24*60*60*1000000-1000000):64>>),
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,59}}), <<0,0,0,7,87,177,40,24>>),               % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,1,10},{1,1,1}}),     <<0,0,0,0,46,145,24,200>>),              % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,10,1},{1,1,1}}),     <<0,0,0,5,126,31,248,200>> ),            % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{2010,3,3},{12,0,0}}),     <<0,0,1,39,35,229,146,0>>),              % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{1950,2,2},{23,59,59}}),   <<255,255,255,109,182,90,156,24>>),      % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{2000,10,10},{10,10,10}}), <<0,0,0,226,30,101,255,208>>),           % TODO: verify
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{2007,7,7}, {7,07,07}}),   <<0,4,52,167,15,65,220,192>>),           % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{0,1,1},{0,0,0}}),         <<255,255,199,117,144,251,160,0>>),      % TODO: verify
 
     % overrunning date and time values
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,60}}), <<(365*24*60*60*1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,61}}), <<(365*24*60*60*1000+1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1971,1,1},{0,0,1}}),      <<(365*24*60*60*1000+1000):64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1971,1,1},{0,0,-1}}),     <<0,0,0,7,87,177,40,24>>),               % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:volt_time({{2020,1,1},{33,10,11}}),   <<0,0,1,111,101,132,249,56>> ),          % TODO: verify
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,60}}), <<(365*24*60*60*1000000):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1970,12,31},{23,59,61}}), <<(365*24*60*60*1000000+1000000):64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time({{1971,1,1},{0,0,1}}),      <<(365*24*60*60*1000000+1000000):64>>),
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{1971,1,1},{0,0,-1}}),     <<0,0,0,7,87,177,40,24>>),               % TODO: verify
+%   ?ERLUNIT_EQUAL(erlvolt:volt_time({{2020,1,1},{33,10,11}}),   <<0,0,1,111,101,132,249,56>> ),          % TODO: verify
 
     % invalid date and time values
     ?ERLUNIT_FAIL (erlvolt:volt_time({{0,0,0},{0,0,0}})),
@@ -572,14 +596,14 @@ run() ->
 
     % from unix epoch seconds integer
     ?ERLUNIT_EQUAL(erlvolt:volt_time(   0),   <<      0:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(   1),   <<   1000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(  -1),   <<  -1000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(  10),   <<  10000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time( -10),   << -10000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time( 999),   << 999000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(-999),   <<-999000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(1000),   <<1000000:64>>),
-    ?ERLUNIT_EQUAL(erlvolt:volt_time(1001),   <<1001000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(   1),   <<   1000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(  -1),   <<  -1000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(  10),   <<  10000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time( -10),   << -10000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time( 999),   << 999000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(-999),   <<-999000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(1000),   <<1000000000:64>>),
+    ?ERLUNIT_EQUAL(erlvolt:volt_time(1001),   <<1001000000:64>>),
 
     ?ERLUNIT_FAIL_MSG(erlvolt:volt_time(1.0),   "Catch float input"),
     ?ERLUNIT_FAIL_MSG(erlvolt:volt_time(-1.0),  "Catch float input"),
@@ -588,80 +612,84 @@ run() ->
     %%%-decode----------------------------------------------------------------time-
 
 
-    % to Erlang 'now' time format {Megasec,Sec,Microsec} from (millisec) Integer -
+    % to Erlang 'now' time format {Megasec,Sec,Microsec} from (microsec) Integer -
     % that function represents more of an intermediary step really but might come 
-    % in handy somewhere
+    % in handy someplace
     ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(0),                           {0,0,0}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1),                           {0,0,1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(-1),                          {0,0,-1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(10000),                       {0,10,0}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1000000001),                  {1,0,1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?BILLION+10*1000),            {1,10,0}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?BILLION+10*1000+1),          {1,10,1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)), {Mega,Sec,trunc(Micro/1000)*1000}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1),                           {0,0,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(-1),                          {0,0,-1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(10000),                       {0,0,10000}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1000000001),                  {0,1000,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(1000000000001),               {1,0,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?TRILLION+10*?MILLION),       {1,10,0}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(?TRILLION+10*?MILLION+1),     {1,10,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(Mega*?TRILLION + Sec*1000000 + Micro), {Mega,Sec,Micro}),
 
 
     % to Erlang 'now' time format {Megasec,Sec,Microsec} from binary
     ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<0:64>>),                    {0,0,0}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1:64>>),                    {0,0,1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<-1:64>>),                   {0,0,-1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<10000:64>>),                {0,10,0}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1000000001:64>>),           {1,0,1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?BILLION+10*1000):64>>),   {1,10,0}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?BILLION+10*1000+1):64>>), {1,10,1000}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)):64>>), {Mega,Sec,trunc(Micro/1000)*1000}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1:64>>),                    {0,0,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<-1:64>>),                   {0,0,-1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<10000000:64>>),             {0,10,0}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<1000000000001:64>>),        {1,0,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?TRILLION+10*1000000):64>>),   {1,10,0}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(?TRILLION+10*1000000+1):64>>), {1,10,1}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_nowtime(<<(Mega*?TRILLION + Sec*1000000 + Micro):64>>), {Mega,Sec,Micro}),
 
-
+%-
     % from Erlang datetime
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-999:64>>),                       {{1970,1,1},{0,0,0}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000000:64>>),                   {{1969,12,31},{23,59,59}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<   -999:64>>),                    {{1970,1,1},{0,0,0}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-999999:64>>),                    {{1970,1,1},{0,0,0}}),
     ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  -1:64>>),                       {{1970,1,1},{0,0,0}}),
     ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  0:64>>),                        {{1970,1,1},{0,0,0}}),
     ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<  1:64>>),                        {{1970,1,1},{0,0,0}}),
     ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<999:64>>),                        {{1970,1,1},{0,0,0}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000:64>>),                      {{1969,12,31},{23,59,59}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),                       {{1970,1,1},{0,0,1}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),                       {{1970,1,1},{0,0,1}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000:64>>),                       {{1970,1,1},{0,0,1}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<999999:64>>),                     {{1970,1,1},{0,0,0}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1000000:64>>),                   {{1969,12,31},{23,59,59}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1100000:64>>),                   {{1969,12,31},{23,59,59}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<-1999999:64>>),                   {{1969,12,31},{23,59,59}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000000:64>>),                    {{1970,1,1},{0,0,1}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1000001:64>>),                    {{1970,1,1},{0,0,1}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<1999999:64>>),                    {{1970,1,1},{0,0,1}}),
     
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<(365*24*60*60*1000+1000):64>>),   {{1971,1,1},{0,0,1}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<(365*24*60*60*1000-1000):64>>),   {{1970,12,31},{23,59,59}}),
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,7,87,177,40,24>>),          {{1970,12,31},{23,59,59}}),    % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,0,46,145,24,200>>),         {{1970,1,10},{1,1,1}}),        % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,5,126,31,248,200>>),        {{1970,10,1},{1,1,1}} ),       % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,1,39,35,229,146,0>>),         {{2010,3,3},{12,0,0}}),        % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<255,255,255,109,182,90,156,24>>), {{1950,2,2},{23,59,59}}),      % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,226,30,101,255,208>>),      {{2000,10,10},{10,10,10}}),    % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,1,111,101,132,249,56>>),      {{2020,1,2},{9,10,11}}),       % TODO: verify
-    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<255,255,199,117,144,251,160,0>>), {{0,1,1},{0,0,0}}),            % TODO: verify
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<(365*24*60*60*1000000+1000000):64>>),   {{1971,1,1},{0,0,1}}),
+    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<(365*24*60*60*1000000-1000000):64>>),   {{1970,12,31},{23,59,59}}),
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,7,87,177,40,24>>),          {{1970,12,31},{23,59,59}}),    % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,0,46,145,24,200>>),         {{1970,1,10},{1,1,1}}),        % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,5,126,31,248,200>>),        {{1970,10,1},{1,1,1}} ),       % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,1,39,35,229,146,0>>),         {{2010,3,3},{12,0,0}}),        % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<255,255,255,109,182,90,156,24>>), {{1950,2,2},{23,59,59}}),      % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,0,226,30,101,255,208>>),      {{2000,10,10},{10,10,10}}),    % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<0,0,1,111,101,132,249,56>>),      {{2020,1,2},{9,10,11}}),       % TODO: verify
+%    ?ERLUNIT_EQUAL(erlvolt:erl_datetime(<<255,255,199,117,144,251,160,0>>), {{0,1,1},{0,0,0}}),            % TODO: verify
 
 
-    % to unix epoch time format (seconds since 1970) from (millisec) Integer -
-    % that function represents more of an intermediary step but might come 
+    % to unix epoch time format (seconds since 1970) from (miCROsec) Integer -
+    % this function represents more of an intermediary step but might come 
     % in handy somewhere
     ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(0),   0),
     ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(1),   0),
     ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(-1),  0),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(10000),   10),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(1000000001),   1000000),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(?BILLION+10*1000),   ?MILLION + 10),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(?BILLION+10*1000+1), ?MILLION + 10),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)), 
-        trunc((Mega*?BILLION + Sec * 1000 + trunc(Micro/1000))/1000)),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(10000),     0),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(10000000), 10),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(1000000000000),   1000000),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(1000000000001),   1000000),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(?TRILLION+10*?MILLION),   ?MILLION + 10),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(?TRILLION+10*?MILLION+1), ?MILLION + 10),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(Mega*?TRILLION + Sec * ?MILLION + Micro), Mega*?MILLION + Sec),
 
 
     % to unix epoch time format (seconds since 1970) from VoltDB binary time wire code
     ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<0:64>>),   0),
     ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<1:64>>),   0),
     ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<-1:64>>),  0),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<10000:64>>),   10),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<1000000001:64>>),   1000000),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<(?BILLION+10*1000):64>>),   ?MILLION + 10),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<(?BILLION+10*1000+1):64>>), ?MILLION + 10),
-    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<(Mega*?BILLION + Sec * 1000 + trunc(Micro/1000)):64>>), 
-        trunc((Mega*?BILLION + Sec * 1000 + trunc(Micro/1000))/1000)),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<10000:64>>),   0),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<10000000:64>>),   10),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<1000000000001:64>>),   1000000),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<(?TRILLION+10*?MILLION):64>>),   ?MILLION + 10),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<(?TRILLION+10*?MILLION+1):64>>), ?MILLION + 10),
+    ?ERLUNIT_EQUAL(erlvolt:erl_unixtime(<<(Mega*?TRILLION + Sec * ?MILLION + Micro):64>>), Mega*?MILLION + Sec),
 
     %%%-two-way---------------------------------------------------------------time-
 

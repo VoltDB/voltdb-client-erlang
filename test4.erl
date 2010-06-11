@@ -1,12 +1,12 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : test4.erl                                                 %%%
 %%% Description : Unit Tests #4 for Erlang-VoltDB client API erlvolt.erl    %%% 
-%%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
+%%% Copyright   : (c) 2010 VoltDB, LLC - http://www.voltdb.com              %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% Licence     : GPLv3                                                     %%%
 %%% Created     : 14 May 2010                                               %%%
-%%% Changed     : 25 May 2010                                               %%%
+%%% Changed     : 11 Jun 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         
 %%%   @doc                                                                  
@@ -27,7 +27,28 @@
 %%%                                                                            
 %%%   @end
 %%%
-%%%----------------------------------------------------------------------------
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%                                                                         %%%
+%%%    This file is part of VoltDB.                                         %%%
+%%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
+%%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
+%%%                                                                         %%%
+%%%    VoltDB is free software:  you can redistribute it  and/or  modify    %%%
+%%%    it under the terms of the GNU General Public License as published    %%%
+%%%    by the Free Software Foundation, either version 3 of the License,    %%%
+%%%    or (at your option) any later version.                               %%%
+%%%                                                                         %%%
+%%%    VoltDB  is distributed  in the hope  that it will be useful,  but    %%%
+%%%    WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty of    %%%
+%%%    MERCHANTABILITY  or  FITNESS  FOR A  PARTICULAR PURPOSE.  See the    %%%
+%%%    GNU General Public License for more details.                         %%%
+%%%                                                                         %%%
+%%%    You should have received a copy of the GNU General Public License    %%%
+%%%    along with  VoltDB.  If not,  see <http://www.gnu.org/licenses/>.    %%%
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
 
 
 -module(test4).
@@ -253,7 +274,7 @@ run() ->
     64,160,0,0,         % Row 1 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,  % Row 1 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                % Row 1 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                % Row 1 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116               % Row 1 Column 8 Value ("Eight")
     >>,
 
@@ -316,7 +337,7 @@ run() ->
     64,160,0,0,         % Row 1 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 1 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 1 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 1 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 1 Column 8 Value ("Eight")
 
     % Row 2
@@ -329,7 +350,7 @@ run() ->
     64,160,0,0,         % Row 2 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 2 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 2 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 2 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 2 Column 8 Value ("Eight")
 
     % Row 3
@@ -342,7 +363,7 @@ run() ->
     64,160,0,0,            % Row 3 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 3 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 3 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 3 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 3 Column 8 Value ("Eight")
 
     % Row 4
@@ -355,7 +376,7 @@ run() ->
     64,160,0,0,         % Row 4 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 4 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 4 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 4 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 4 Column 8 Value ("Eight")
 
     % Row 5
@@ -368,7 +389,7 @@ run() ->
     64,160,0,0,         % Row 5 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 5 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 5 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 5 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 5 Column 8 Value ("Eight")
 
     % Row 6
@@ -381,7 +402,7 @@ run() ->
     64,160,0,0,         % Row 6 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 6 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 6 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 6 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 6 Column 8 Value ("Eight")
 
     % Row 7
@@ -394,7 +415,7 @@ run() ->
     64,160,0,0,         % Row 7 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 7 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 7 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 7 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 7 Column 8 Value ("Eight")
 
     % Row 8
@@ -407,7 +428,7 @@ run() ->
     64,160,0,0,         % Row 8 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 8 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 8 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 8 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 8 Column 8 Value ("Eight")
 
     % Row 9
@@ -420,7 +441,7 @@ run() ->
     64,160,0,0,         % Row 9 Column 5 Value
     
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 9 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 9 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 9 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116,                % Row 9 Column 8 Value ("Eight")
 
     % Row 10
@@ -433,7 +454,7 @@ run() ->
     64,160,0,0,         % Row 10 Column 5 Value
         
     0,0,0,0,0,0,0,0,0,0,5,116,251,222,96,0,    % Row 10 Column 6 Value (6.0)
-    0,0,1,19,159,128,213,120,                  % Row 10 Column 7 Value (2007-7-7 7:07:07)
+    0,4,52,167,15,65,220,192,                  % Row 10 Column 7 Value (2007-7-7 7:07:07)
     0,0,0,5,69,105,103,104,116                 % Row 10 Column 8 Value ("Eight")
 
 

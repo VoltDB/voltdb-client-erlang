@@ -1,0 +1,22 @@
+%%%-------------------------------------------------------------------------%%%
+%%% File        : CHANGES                                                   %%%
+%%% Version     : 0.1.02/alpha                                              %%%
+%%% Description : List of source code changes of Erlvolt                    %%%
+%%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
+%%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
+%%% Author      : H. Diedrich - <hd2010@eonblast.com>                       %%%
+%%% Licence     : GPLv3 - see LICENSE                                       %%%
+%%% Created     : 12 May 2010                                               %%%
+%%% Changed     : 11 Jun 2010                                               %%%
+%%%-------------------------------------------------------------------------%%%
+
+
+
+0.1.02  11 Jun 2010 
+
+        + Fix: timestamps now interpreted as microseconds (thx Ning)
+        + License tags now termed precisely as they should
+
+0.1.01  + Minor changes
+
+0.1     * First public release

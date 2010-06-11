@@ -4,7 +4,7 @@
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%  
 %%% Licence     : GPLv3                                                     %%%  
 %%% Created     : 11 May 2010                                               %%%
-%%% Changed     : 25 May 2010                                               %%%
+%%% Changed     : 11 Jun 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   This is a unit test program to test the Erlvolt module ervolt.erl.    %%%
@@ -18,6 +18,27 @@
 %%%   -------------                                                         %%%
 %%%   Erlunit in subdirectory erlunit.                                      %%%
 %%%   Get it from: http://github.com/Eonblast/Erlunit/tarball/master        %%%
+%%%                                                                         %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%                                                                         %%%
+%%%    This file is part of VoltDB.                                         %%%
+%%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
+%%%    Author H. Diedrich <hd2010@eonblast.com> http://www.eonblast.com     %%%
+%%%                                                                         %%%
+%%%    VoltDB is free software:  you can redistribute it  and/or  modify    %%%
+%%%    it under the terms of the GNU General Public License as published    %%%
+%%%    by the Free Software Foundation, either version 3 of the License,    %%%
+%%%    or (at your option) any later version.                               %%%
+%%%                                                                         %%%
+%%%    VoltDB  is distributed  in the hope  that it will be useful,  but    %%%
+%%%    WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty of    %%%
+%%%    MERCHANTABILITY  or  FITNESS  FOR A  PARTICULAR PURPOSE.  See the    %%%
+%%%    GNU General Public License for more details.                         %%%
+%%%                                                                         %%%
+%%%    You should have received a copy of the GNU General Public License    %%%
+%%%    along with  VoltDB.  If not,  see <http://www.gnu.org/licenses/>.    %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 
@@ -153,7 +174,7 @@ run() ->
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_BIGINT, 0}),    <<?VOLT_BIGINT:8,   0:?VOLT_BIGINT_TYPE>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_FLOAT, 0.0}),   <<?VOLT_FLOAT:8,  0.0:?VOLT_FLOAT_TYPE>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_STRING, ""}),   <<?VOLT_STRING:8,   0:?VOLT_STRING_SIZE_BINARY_TYPE>>),
-	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_TIMESTAMP,     {{0,1,1},{0,0,0}}}), <<?VOLT_TIMESTAMP:8, 255,255,199,117,144,251,160,0>>), % TODO: verify.
+	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_TIMESTAMP,     {{0,1,1},{0,0,0}}}), <<?VOLT_TIMESTAMP:8, 255,35,35,62,86,233,0,0>>), % TODO: verify.
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_DECIMAL, 0}),   <<?VOLT_DECIMAL:8,  0:?VOLT_DECIMAL_TYPE>>), % TODO: verify.
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_ARRAY, []}),    <<?VOLT_ARRAY:8, ?VOLT_INTEGER:8, 0:16>>), 
 
@@ -163,7 +184,7 @@ run() ->
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_BIGINT, 1}),    <<?VOLT_BIGINT:8,   1:?VOLT_BIGINT_TYPE>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_FLOAT, 1.0}),   <<?VOLT_FLOAT:8,  1.0:?VOLT_FLOAT_TYPE>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_STRING, "1"}),  <<?VOLT_STRING:8,   1:32, "1">>),
-	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_TIMESTAMP,     {{2000,1,1},{1,0,0}}}), <<?VOLT_TIMESTAMP, 0,0,0,220,107,6,154,128>>), % TODO: verify.
+	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_TIMESTAMP,     {{2000,1,1},{1,0,0}}}), <<?VOLT_TIMESTAMP:8, 0,3,93,2,17,203,132,0>>), % TODO: verify.
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_DECIMAL, 1}),   <<?VOLT_DECIMAL:8, 0,0,0,0,0,0,0,0,0,0,0,232,212,165,16,0>>), % TODO: verify.
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_ARRAY, [1]}),    <<?VOLT_ARRAY:8, ?VOLT_INTEGER:8, 1:16, 1:?VOLT_INTEGER_TYPE>>), 
 
@@ -173,7 +194,7 @@ run() ->
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_BIGINT, -1}),   <<?VOLT_BIGINT:8,  -1:?VOLT_BIGINT_TYPE>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_FLOAT, -1.0}),  <<?VOLT_FLOAT:8, -1.0:?VOLT_FLOAT_TYPE>>),
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_STRING, "-1"}), <<?VOLT_STRING:8,   2:32, "-1">>),
-	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_TIMESTAMP,     {{1999,12,31},{23,59,59}}}), <<?VOLT_TIMESTAMP, 0,0,0,220,106,207,168,24>>), % TODO: verify.
+	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_TIMESTAMP,     {{1999,12,31},{23,59,59}}}), <<?VOLT_TIMESTAMP:8, 0,3,93,1,59,40,157,192>>), % TODO: verify.
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_DECIMAL, -1}),  <<?VOLT_DECIMAL:8, 255,255,255,255,255,255,255,255,255,255,255,23,43,90,240,0>>), % TODO: verify.
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_ARRAY, [-1]}),  <<?VOLT_ARRAY:8, ?VOLT_INTEGER:8, 1:16, -1:?VOLT_INTEGER_TYPE>>), 
 	?ERLUNIT_EQUAL(erlvolt:volt_parameter({?VOLT_ARRAY, [-1,0,1]}),    <<?VOLT_ARRAY:8, ?VOLT_INTEGER:8, 3:16,
