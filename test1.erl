@@ -4,12 +4,12 @@
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
-%%% Licence     : GPLv3                                                     %%%
+%%% License     : GPLv3                                                     %%%
 %%% Created     : 25 Apr 2010                                               %%%
 %%% Changed     : 11 Jun 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%    Erlvolt 0.1.03/alpha - an Erlang-VoltDB client API.                  %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
@@ -783,6 +783,41 @@ run() ->
     Array_Erl_3c = { voltarray, ?VOLT_STRING, [ "1", "2" ]},
     Array_Bin_3c = <<?VOLT_STRING,0,2,0,0,0,1,49,0,0,0,1,50>>,
     ?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3c), Array_Bin_3c),
+    
+    Array_Erl_3d = ["Edwina Burnam","Tabatha Gehling","Kelly Clauss","Jessie Alloway","Alana Bregman","Jessie Eichman","Allie Rogalski","Nita Coster","Kurt Walser","Ericka Dieter","Loraine Nygren","Tania Mattioli"],
+    Array_Bin_3d =
+       <<?VOLT_STRING,0,12, 
+		0,0,0,13,
+		69,100,119,105,110,97,32,66,117,114,110,97,109,
+		0,0,0,15,
+		84,97,98,97,116,104,97,32,71,101,104,108,105,110,103,
+		0,0,0,12,
+		75,101,108,108,121,32,67,108,97,117,115,115,
+		0,0,0,14,
+		74,101,115,115,105,101,32,65,108,108,111,119,97,121,
+		0,0,0,13,
+		65,108,97,110,97,32,66,114,101,103,109,97,110,
+		0,0,0,14,
+		74,101,115,115,105,101,32,69,105,99,104,109,97,110,
+		0,0,0,14,
+		65,108,108,105,101,32,82,111,103,97,108,115,107,105,
+		0,0,0,11,
+		78,105,116,97,32,67,111,115,116,101,114,
+		0,0,0,11,
+		75,117,114,116,32,87,97,108,115,101,114,
+		0,0,0,13,
+		69,114,105,99,107,97,32,68,105,101,116,101,114,
+		0,0,0,14,
+		76,111,114,97,105,110,101,32,78,121,103,114,101,110,
+		0,0,0,14,
+		84,97,110,105,97,32,77,97,116,116,105,111,108,105>>,
+    
+    ?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3d), Array_Bin_3d),
+
+    Array_Erl_3e = [<<"Edwina Burnam">>,<<"Tabatha Gehling">>,<<"Kelly Clauss">>,<<"Jessie Alloway">>,<<"Alana Bregman">>,<<"Jessie Eichman">>,<<"Allie Rogalski">>,<<"Nita Coster">>,<<"Kurt Walser">>,<<"Ericka Dieter">>,<<"Loraine Nygren">>,<<"Tania Mattioli">>],
+    Array_Bin_3e = Array_Bin_3d,
+    
+    ?ERLUNIT_EQUAL(erlvolt:volt_array(Array_Erl_3e), Array_Bin_3e),
 
     %%% floats
 

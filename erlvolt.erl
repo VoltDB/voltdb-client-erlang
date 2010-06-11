@@ -1,11 +1,11 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.erl                                               %%%
-%%% Version     : 0.1.02/alpha                                              %%%
+%%% Version     : 0.1.03/alpha                                              %%%
 %%% Description : Erlang-VoltDB client API                                  %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
-%%% Licence     : GPLv3                                                     %%%
+%%% License     : GPLv3                                                     %%%
 %%% Created     : 17 Apr 2010                                               %%%
 %%% Changed     : 11 Jun 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
@@ -52,7 +52,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%    Erlvolt 0.1.03/alpha - an Erlang-VoltDB client API.                  %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
@@ -93,12 +93,12 @@
 
 -module(erlvolt).
 
--vsn("0.1.02/alpha").
+-vsn("0.1.03/alpha").
 -author("H. Diedrich <hd2010@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.1.02/alpha").
+-define(VERSION, "0.1.03/alpha").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB Client API").
 
@@ -1636,9 +1636,9 @@ getString_or_null({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) ->
 
     vecho(?V, "getString_or_null( { voltrow, ~w }, ~w )", [List, Pos]),
 
-	try
-	    to_list(lists:nth(Pos, List))
-	catch
+    try
+        to_list(lists:nth(Pos, List))
+    catch
         _:_ -> null
     end;
 
@@ -1661,7 +1661,7 @@ getString_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
 
     try
         to_list(element(RecPos, Record))
-	catch
+    catch
         _:_ -> null
     end.
 
@@ -1680,9 +1680,9 @@ getString({ voltrow, _ }=VoltRow, VoltTable, Name) when is_binary(Name)->
 
     { volttable, ColumnNames, _ColumnTypes, _Rows } = VoltTable,
 
-	Index = listOrd(Name, ColumnNames),
-	Index /= nil orelse erlang:error({bad_column_name, Name, ColumnNames}),
-	
+    Index = listOrd(Name, ColumnNames),
+    Index /= nil orelse erlang:error({bad_column_name, Name, ColumnNames}),
+    
     getString(VoltRow, Index).
 
 
@@ -1699,10 +1699,10 @@ getString_or_null({ voltrow, _ }=VoltRow, VoltTable, Name) when is_binary(Name)-
 
     { volttable, ColumnNames, _ColumnTypes, _Rows } = VoltTable,
 
-	case Index = listOrd(Name, ColumnNames) of
-		nil -> null;
-		_ -> getString_or_null(VoltRow, Index)
-	end.
+    case Index = listOrd(Name, ColumnNames) of
+        nil -> null;
+        _ -> getString_or_null(VoltRow, Index)
+    end.
 
 
 %%%----------------------------------------------------------------------------
@@ -2104,7 +2104,7 @@ volt_invoke(ProcedureName, Parameters, ClientData) when is_binary(ClientData) ->
 
     Bin = <<H/binary, N/binary, ClientData/binary, P/binary>>,
 
-   vecho(?V, "~nSend invoke: ~w~n", [Bin]),
+    vecho(?V, "~nSend invoke: ~w~n", [Bin]),
 
     Bin.
 
@@ -2161,6 +2161,7 @@ volt_parameters({ voltparameters, Parameters }) when is_list(Parameters) ->
 volt_parameters(Parameters) when is_list(Parameters) ->
 
     List = [ volt_parameter(Parameter) || Parameter <- Parameters ],
+    % debug io:format("~p",[List]),
     Count = length(List),
     list_to_binary([<<Count:16>> | List ]).
 
@@ -2173,10 +2174,25 @@ volt_parameter({ Type, Value }) ->
 
     <<Type:8, V/binary>>;
 
+volt_parameter(Value) when is_integer(Value) ->
+
+    volt_parameter({?VOLT_INTINT, Value});
+
+volt_parameter(Value) when is_list(Value) ->
+
+    volt_parameter({?VOLT_ARRAY, Value});
+
+volt_parameter(Value) when is_binary(Value) ->
+
+    volt_parameter({?VOLT_STRING, Value});
+
 volt_parameter(Value) ->
 
-    volt_parameter({?VOLT_STRING, Value}).
+    erlang:error({missing_parameter_type, Value}).
 
+    % debug io:format("Trying to make volt parameter string from: ~w~n~n~p~n",[Value,erlang:get_stacktrace()]),
+    
+    % was: volt_parameter({?VOLT_STRING, Value}).
 
 
 %*****************************************************************************%

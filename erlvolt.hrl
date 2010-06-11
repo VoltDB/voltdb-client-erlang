@@ -1,11 +1,11 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.hrl                                               %%%
-%%% Version     : 0.1.02/alpha                                              %%%
+%%% Version     : 0.1.03/alpha                                              %%%
 %%% Description : Erlang-VoltDB client API                                  %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
-%%% Licence     : GPLv3                                                     %%%
+%%% License     : GPLv3                                                     %%%
 %%% Created     : 25 Apr 2010                                               %%%
 %%% Changed     : 26 May 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
@@ -16,7 +16,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.1.02/alpha - an Erlang-VoltDB client API.                  %%%
+%%%    Erlvolt 0.1.03/alpha - an Erlang-VoltDB client API.                  %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
