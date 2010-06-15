@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.erl                                               %%%
-%%% Version     : 0.1.03/alpha                                              %%%
+%%% Version     : 0.2.01/alpha                                              %%%
 %%% Description : Erlang-VoltDB client API                                  %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2010@eonblast.com>                         %%%
 %%% License     : GPLv3                                                     %%%
 %%% Created     : 17 Apr 2010                                               %%%
-%%% Changed     : 11 Jun 2010                                               %%%
+%%% Changed     : 14 Jun 2010                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   Erlvolt is an Erlang interface to a VoltDB server. It allows for      %%%
@@ -28,12 +28,12 @@
 %%%   REQUIREMENTS                                                          %%%
 %%%                                                                         %%%
 %%%   + VoltDB 1.0.01                                                       %%%
-%%%   + Tested on Java 1.6.0-17 (use -18+!)                                 %%%
-%%%   + Tested on Erlang R13B01                                             %%%
+%%%   + Tested on Java 1.6.0-17 and -19 (use 18+ for production!)           %%%
+%%%   + Tested on Erlang R13B01 and R13B03                                  %%%
 %%%                                                                         %%%
 %%%   TESTS                                                                 %%%
 %%%                                                                         %%%
-%%%   + Have at least Erlang R13B-1                                         %%%
+%%%   + Have at least Erlang R13B01                                         %%%
 %%%   + Get Erlunit from http://github.com/Eonblast/Erlunit/tarball/master  %%%
 %%%     and put it into subfolder erlunit, inside your Erlvolt folder.      %%%
 %%%   + From the OS command line run ./test                                 %%%
@@ -52,7 +52,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.1.03/alpha - an Erlang-VoltDB client API.                  %%%
+%%%    Erlvolt 0.2.01/alpha - an Erlang-VoltDB client API.                  %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2010 VoltDB, LLC http://www.voltdb.com            %%%
@@ -93,12 +93,12 @@
 
 -module(erlvolt).
 
--vsn("0.1.03/alpha").
+-vsn("0.2.01/alpha").
 -author("H. Diedrich <hd2010@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.1.03/alpha").
+-define(VERSION, "0.2.01/alpha").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB Client API").
 
@@ -184,7 +184,6 @@
             createConnection/4,
             callProcedure/3,
             callProcedure/4,
-            callProcedure/5,
             volt_login/2,
             volt_hash/1,
             volt_header/0,
@@ -199,7 +198,17 @@
             getString_or_null/3,
             listOrd/2,
             fetchRow/2,
-            fetchRecord/3]).
+            fetchRecord/3,
+
+			drain/1,
+			close/1,
+			createReceiver/1,
+			createReceiver/2,
+			receiver/2,
+			receiver_loop/2,
+			handle_response/2,
+			receiveResponse/1
+            ]).
 
 
 % TODO: sort export lines.
@@ -1749,15 +1758,25 @@ to_list(L) when is_float(L) -> float_to_list(L).
 %*****************************************************************************%
 
 %%%----------------------------------------------------------------------------
+%%% Connection record structure
+%%%----------------------------------------------------------------------------
+
+-record(connection, { socket, state, settings }).
+-record(connection_settings, { receive_timeout = infinity }).
+
+%%%----------------------------------------------------------------------------
 %%% @doc  Client opens connection and logs in to the VoltDB server cluster.
 %%% Use defaults: localhost, port 21212, client name "program" and password "password".
 %%% Login name and password can be irrelevant, check the VoltDB docs.
 
 -define(PORT, 21212).
 
+
 createConnection() ->
 
     createConnection("localhost", ?PORT, "program", "password").
+    
+% TODO: make name fit Java API.   
 
 %%%----------------------------------------------------------------------------
 %%% @doc  Client opens connection and logs in to the VoltDB server cluster.
@@ -1784,11 +1803,16 @@ createConnection(Host, Login, Password) ->
 
 createConnection(Host, Port, Login, Password) ->
 
-    open(Host, Port, Login, Password).
+    Socket   = open(Host, Port, Login, Password),
+	State    = {},
+	Settings = #connection_settings{},
+
+    #connection{ socket=Socket, state=State, settings=Settings }.
 
 %%%----------------------------------------------------------------------------
-%%% @private  Workhorse: Client opens connection and logs in to the VoltDB server cluster.
-%%% Login name and password can be irrelevant, check the VoltDB docs.
+%%% @private  Workhorse: Client opens connection and logs in to the VoltDB 
+%%% server cluster. Login name and password can be irrelevant, check the VoltDB 
+%%% docs.
 
 open(Host, Port, Login, Password) ->
 
@@ -1807,13 +1831,33 @@ open(Host, Port, Login, Password) ->
 
 %%%----------------------------------------------------------------------------
 %%% @private  Workhorse: Client opens connection to the VoltDB server cluster.
+%%% 
 
 connect(Host, Port) ->
 
-    {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {packet, 4}]),
+	Opts = [ binary, 
+			 {packet, 4}, 
+			 {send_timeout, infinity} ],
+
+    {ok, Socket} = gen_tcp:connect(Host, Port, Opts),
 
     Socket.
 
+%%%----------------------------------------------------------------------------
+%%% @doc  Wait for all calls to be sent to the server; use before closing.
+
+drain(_Socket) -> ok.
+
+% TODO: implement
+
+%%%----------------------------------------------------------------------------
+%%% @doc  Close connection.
+%%% May throw {error, Reason}
+
+close(Socket) ->
+
+	get_tcp:close(Socket).
+	
 
 %*****************************************************************************%
 %                                                                             %
@@ -2012,89 +2056,119 @@ erl_login_response(Bin) ->
 
 %%%----------------------------------------------------------------------------
 %%% @doc  Send a stored procedure call to the VoltDB server.
-%%% Use a default client tag and default time out.
 
 -define(TIMEOUT, 1000). % ms
 -define(DEFAULT_CLIENT_TAG, <<1:(8*8)>>).
 
-callProcedure(Socket, ProcedureName, Parameters ) ->
-    callProcedure(Socket, ProcedureName, Parameters, ?DEFAULT_CLIENT_TAG, ?TIMEOUT).
+callProcedure(Connection, ProcedureName, Parameters) ->
+
+    callProcedure(Connection, ProcedureName, Parameters, blocking).
 
 %%%----------------------------------------------------------------------------
 %%% @doc  Send a stored procedure call to the VoltDB server.
-%%% Use a specified client tag and default time out.
 
-callProcedure(Socket, ProcedureName, Parameters, ClientTag ) ->
-    callProcedure(Socket, ProcedureName, Parameters, ClientTag, ?TIMEOUT).
+callProcedure(Connection, ProcedureName, Parameters, blocking) ->
 
-%%%----------------------------------------------------------------------------
-%%% @doc  Send a stored procedure call to the VoltDB server.
-%%% Use a specified client tag and a specified time out.
+	try
 
-callProcedure(Socket, ProcedureName, Parameters, ClientData, TimeOut) ->
+		Socket = Connection#connection.socket,
+		
+	    gen_tcp:send(Socket, volt_invoke(ProcedureName, Parameters, ?DEFAULT_CLIENT_TAG)),
+	
+		receiveResponse(Connection, {hint, ProcedureName, Parameters})
 
-    gen_tcp:send(Socket, volt_invoke(ProcedureName, Parameters, ClientData)),
+	catch
+		
+		What:Why -> throw({ blocking_call_failed, { What, Why, Connection, ProcedureName, Parameters, no_callback }})
+        
+    end;
 
-    receive
 
-        {tcp,Socket,ResultBin} ->
+callProcedure(Connection, ProcedureName, Parameters, CallBack) ->
 
-            erl_response(ResultBin);
+	try
 
-        Else -> erlang:error({ unexpected_response_format, Else })
+		CallId = erlvolt:add_callback(CallBack), % TODO: overflow / backpressure check here
+	
+		Socket = Connection#connection.socket,
+		
+	    gen_tcp:send(Socket, volt_invoke(ProcedureName, Parameters, CallId)),
+	
+		receiveResponse(Connection, {ProcedureName, Parameters})
 
-    after TimeOut ->
+	catch
+		
+		What:Why -> throw({ asynch_call_failed, { What, Why, Connection, ProcedureName, Parameters, CallBack } } )
 
-        erlang:throw({receive_time_out, ProcedureName, Parameters})
+	end.        
 
-    end.
 
 %%%----------------------------------------------------------------------------
 %%% Asynchronous / non-blocking
 %%%----------------------------------------------------------------------------
 
 %%%----------------------------------------------------------------------------
-%%% @doc Send an asynch stored procedure call to the VoltDB server, with callback.
-%%% TODO: not --- Use a default client tag and default time out.
-%
-%-define(TIMEOUT, 1000). % ms
-%-define(DEFAULT_CLIENT_TAG, <<1:(8*8)>>).
-%
-%callProcedureAsync(Socket, ProcedureName, Parameters ) ->
-%    callProcedure(Socket, ProcedureName, Parameters, ?DEFAULT_CLIENT_TAG, ?TIMEOUT).
-%
+%%% @doc Create Asynch Receiver Process; default handling: callbacks.
+%%% The callback functions are handed to the individual callsProcedure/4 calls.
+
+createReceiver(Connection) ->
+
+	createReceiver(Connection, callback).
+	  
+
 %%%----------------------------------------------------------------------------
-%%% @doc  Send a stored procedure call to the VoltDB server.
-%%% Use a specified client tag and default time out.
-%
-%callProcedureAsync(Socket, ProcedureName, Parameters, ClientTag ) ->
-%   callProcedure(Socket, ProcedureName, Parameters, ClientTag, ?TIMEOUT).
-%
+%%% @doc Create Asynch Receiver Process
+
+createReceiver(Connection, Handling) ->
+
+	spawn(fun() -> receiver(Connection, Handling) end).
+	
+
 %%%----------------------------------------------------------------------------
-%%% @doc  Send a stored procedure call to the VoltDB server.
-%%% Use a specified client tag and a specified time out.
-%
-%callProcedureAsync(Socket, ProcedureName, Parameters, ClientData, TimeOut) ->
-%
-%    gen_tcp:send(Socket, volt_invoke(ProcedureName, Parameters, ClientData)),
-%
-%    receive
-%
-%        {tcp,Socket,ResultBin} ->
-%
-%            erl_response(ResultBin);
-%
-%        Else -> erlang:error({ unexpected_response_format, Else })
-%
-%    after TimeOut ->
-%
-%        erlang:throw({receive_time_out, ProcedureName, Parameters})
-%
-%    end.
-%
-%
+%%% @private Start Asynch Receiver Loop
+%%% @spec receiver(connection(), handling()) -> nil()
+
+receiver(Connection, Handling) ->
+
+	register(receiver, self()),
+
+	try
+		receiver_loop(Connection, Handling) % never returns
+	catch
+		What:Why ->
+			unregister(receiver),
+			erlang:error({ receiver_died, What, Why })
+	end.
+
 %%%----------------------------------------------------------------------------
-%%% @doc  Make VoltDB wire binary for login message from name and password.
+%%% @private Asynch Receiver Loop
+%%% @spec reiver_loop(connection()) -> nil()
+
+receiver_loop(Connection, Handling) ->
+
+	Response = receiveResponse(Connection),
+
+	handle_response(Response, Handling),
+
+	receiver_loop(Connection, Handling).
+	
+
+%%%----------------------------------------------------------------------------
+%%% @doc Asynch Response and Callback Handler
+%%%
+
+handle_response(_Response, _Handling) ->
+
+	ok.
+
+	% TODO: implement
+
+
+
+%%%----------------------------------------------------------------------------
+%%% Translate procedure call into VoltDB Wire Protocol
+%%%----------------------------------------------------------------------------
+%%% @private  Make VoltDB wire binary for login message from name and password.
 
 volt_invoke(ProcedureName, Parameters, ClientData) when is_binary(ClientData) ->
 
@@ -2107,6 +2181,70 @@ volt_invoke(ProcedureName, Parameters, ClientData) when is_binary(ClientData) ->
     vecho(?V, "~nSend invoke: ~w~n", [Bin]),
 
     Bin.
+
+%%%----------------------------------------------------------------------------
+%%% Receive of one response
+%%%----------------------------------------------------------------------------
+
+%%%----------------------------------------------------------------------------
+%%% @ doc  Blocking Receive of one VoltDB wire binary response.
+%%% @ spec  receiveResponse(Connection::connection()) -> Response:erl_response().
+ 
+receiveResponse(Connection) ->
+
+	receiveResponse(Connection, {}).
+
+%%%----------------------------------------------------------------------------
+%%% @ doc  Blocking Receive of one VoltDB wire binary response, with timeout.
+%%% @ spec  receiveResponse(Connection::connection(), TimeOut:integer()) ->
+%%% Response:erl_response().
+
+receiveResponse(Connection, nonblocking) ->
+	
+	receiveResponse(Connection, 0, {});
+
+receiveResponse(Connection, TimeOut) when is_integer(TimeOut) or is_atom(TimeOut) ->
+	
+	receiveResponse(Connection, TimeOut, {});
+
+receiveResponse(Connection, Hint) ->
+	
+	Settings = Connection#connection.settings,
+	TimeOut = Settings#connection_settings.receive_timeout,
+
+	receiveResponse(Connection, TimeOut, Hint).
+
+%%%----------------------------------------------------------------------------
+%%% @ doc  Non-Blocking Receive of one VoltDB wire binary response.
+
+receiveResponse(Connection, nonblocking, Hint) ->
+
+	receiveResponse(Connection, 0, Hint);
+
+%%%----------------------------------------------------------------------------
+%%% @ doc  Blocking Receive of one VoltDB wire binary response.
+%%% set TimeOut to 0 for non-blocking. 
+
+receiveResponse(Connection, TimeOut, Hint) ->
+
+	Socket = Connection#connection.socket,
+
+    receive
+
+        {tcp,Socket,ResultBin} ->
+
+            erl_response(ResultBin);
+
+        Else -> erlang:error({ unexpected_response_format, Else, Connection })
+
+    after TimeOut ->
+
+        erlang:throw({ receive_time_out, Hint, Connection })
+
+    end.
+
+
+
 
 
 %*****************************************************************************%
@@ -2441,7 +2579,12 @@ create_callback_table() ->
 
 create_callback_id() ->
 
-    { callback_id, { node(), self(), erlang:now() }}.
+	% This is sytem-wide unique, which is unnecessary:
+    % { callback_id, { node(), self(), erlang:now() }}.
+
+    { callback_id, erlang:now() }.
+    
+    % Note that every result of erlang:now() is guaranteed to be unique.
 
 
 %%%----------------------------------------------------------------------------
@@ -2452,7 +2595,7 @@ add_callback(Fun) when is_function(Fun, 1) ->
 
     Id = create_callback_id(),
     case ets:insert_new( callback_table, { Id, Fun } ) of
-        false -> erlang:error(double_id);
+        false -> erlang:error(duplicate_callback_id);
         _ -> Id
     end.
 
@@ -2536,10 +2679,10 @@ banner() -> banner(?EXPLAIN).
 banner(Message) ->
     io:format("---------------------------------------------------------------------------~n"),
     io:format("                                             %                             ~n"),
-    io:format("             %%%%% %%%%%   %%   %%   %%    %%%    %%  %%%%%%%%             ~n"),
+    io:format("             %%%%% %%%%%  °%%  °%%   %%°  °%%%   °%%   %%%%%%              ~n"),
     io:format("             %%%   %%  %%  %%    %%  %  %%   %%%  %%     %%                ~n"),
-    io:format("             %%    %%%%%   %%  %  %%%   %%%   %%  %%  %  %%                ~n"),
-    io:format("             %%%%% %%  %%  %%%%%   %      %%%     %%%%%  %%                ~n"),
+    io:format("             %%    %%%%%°  %%  %  %%%   %%%   %%  %%  %  %%                ~n"),
+    io:format("             %%%%% %%  %%  %%%%%   %      %%% °   %%%%%  %%                ~n"),
     io:format("                                          %                                ~n"),
     io:format("---------------------------------------------------------------------------~n"),
     io:format("~s ~s - ~s~n",[?LIBRARY, ?VERSION, Message]),

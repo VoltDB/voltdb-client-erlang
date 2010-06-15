@@ -94,6 +94,8 @@ run() ->
                   exit(bad_result)
         end,
 
+		erlvolt:close(Connection),
+
     	io:format("~n(This was client3)~n") 
 
     catch

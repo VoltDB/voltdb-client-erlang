@@ -52,7 +52,9 @@ run() ->
               Other -> 
                   io:format("Can't grok ~w.", [Other]),
                   exit(bad_result)
-        end
+        end,
+
+		erlvolt:close(Connection)
 
     catch
 		throw:{ open_failed, _, _}=Why ->

@@ -71,6 +71,9 @@ run() ->
                   io:format("Can't grok ~w.", [Other]),
                   exit(bad_result)
         end,
+
+
+		erlvolt:close(Connection),
 	
     	io:format("~n(This was client2)~n") 
 
