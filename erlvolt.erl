@@ -198,6 +198,7 @@
             getString_or_null/3,
             listOrd/2,
             fetchRow/2,
+            fetchRowsAsList/1,
             fetchRecord/3,
 
 			drain/1,
@@ -1568,6 +1569,13 @@ erl_table_fields([ Type | TypesTail ], RowBinaryStream ) ->
 fetchRow({ volttable, _, _, List}, Pos) when is_list(List) ->
 
     lists:nth(Pos, List).
+
+%%% @doc Get all rows out of a given table.
+%%% @spec fetchRowsAsList(volttable()) -> [voltrow()]
+
+fetchRowsAsList({ volttable, _, _, List}) when is_list(List) ->
+
+    List.
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a row out of a given table as record, by index number. First == 1.
