@@ -1,0 +1,36 @@
+# usage: bench <# VMs> <# cores> <# calls total> <# parallel workers>
+# 'make clean fast' for fastest build
+# 'make clean profile' to see rolling stats
+
+VMS=$1
+CORES=$2
+CALLS=$3
+WORKERS=$4
+RHYTHM=$5
+MODE=$6
+
+# prep logging
+sudo pkill -f "tail -f bench.log"
+echo "Mulitple VM Erlvolt Bench Log" > bench.log
+echo -n "" > bench.totals
+tail -f bench.log &
+
+# start processes
+for cid in $(seq 1 1 $VMS) ; do
+	# parameters to run: VMID, Bench, ACallTarget, ARhythm, ABurstSize, ADelay, Mode, AQueueSize, ASlots, ATarget, AVerbosity, ADumpInterval
+	erl -pa ../../ebin -s bench run VSD$cid voter $CALLS $RHYTHM $WORKERS x $MODE x x x nonverbose 500 -s init stop -noshell +P 1000000 -smp +S $CORES -config bench >> bench.log 2>> bench.log &
+done
+echo "This is the followed tail of the file bench.log, which is written to by $1 separate Erlang VMs running the benchmark."
+
+# Wait for all processes to finish, then 2 seconds more.
+wait $!
+sleep 5
+
+# Sum and print totals of processes
+echo -n "VM performances: "
+while read -r line
+do
+ echo -n $line " "
+done < bench.totals
+echo
+echo "Total transactions per second:" `cat bench.totals | awk '{total = total + $1}END{print total}'` "T/sec"

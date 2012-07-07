@@ -1,0 +1,13 @@
+%% Erlang Application (.app) file-template
+%% This template is filled in by a sed call in ./Makefile 
+%% and then copied over to ebin/erlvolt.app.
+
+{application, erlvolt, [
+    {description, "Erlvolt - Erlang VoltDB driver"},
+    {vsn, "0.3.0"},
+    {modules, []}, 
+    {mod, {erlvolt_app, ["%MAKETIME%"]}},
+    {registered, []},
+    {applications, [kernel, stdlib, crypto]},
+    {env, []}
+]}.

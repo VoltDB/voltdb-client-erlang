@@ -1,2 +1,3 @@
+{application,erlvolt}.
 {packages,[]}.
-{modules,[erlvolt,test1]}.
+{modules,[erlvolt_app,erlvolt_sup]}.
