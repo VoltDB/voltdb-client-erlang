@@ -1,25 +1,24 @@
-voltdb-client-erlang Erlvolt 0.3.0
-==================================
+voltdb-client-erlang Erlvolt 0.3.1/beta
+=======================================
 
-**Release: 'Erlvolt 0.3.0'**  
+**Release: 'Erlvolt 0.3.1/beta'**  
 **Author: H. Diedrich**  
 **Production: Eonblast Corporation**  
 **Copyright: (c) 2013 VoltDB, Inc**  
 **Licence: MIT**  
-**Date: Jan 31 2013**  
+**Date: 4 Feb 2013**  
 
-This is an Erlang [VoltDB][] driver provided by [Eonblast][]. It is [easy][Samples] to use but provides strong [connection pooling][Adding_a_Pool] and a broad array of [options][]. It is optimized for a central node architecture and super high velocity OLTP.
+This is an [Erlang](http://www.erlang.org) [VoltDB](hhtp://www.voltdb.com) driver provided by [Eonblast](http://www.eonblast.com). It is [easy][Samples] to use but provides strong [connection pooling][Adding_a_Pool] and a broad array of [options][options]. It is optimized for a central node architecture and super high velocity OLTP.
 
-While databases generally can be accessed via ODBC in Erlang, you should see better performance when using a *driver* like Erlvolt. For [samples][Samples] and [docs][] see below. Read the brief on [choosing][Choosing] the right options and about how this driver  [came to be][History].
+While databases generally can be accessed via ODBC in Erlang, you should see better performance when using a *driver* like Erlvolt. For [samples][Samples], [API description][Usage] and fine tuning [options][Options] see below. 
 
-[Erlvolt][1] was initiated and created by Eonblast, in this second incarnation with  sponsorship by VoltDB.
+[Erlvolt](http://github.com/Eonblast/Erlvolt) was initiated and [created][History] by [Eonblast](http://www.eonblast.com), in this second incarnation with sponsorship by [VoltDB](http://www.voltdb.com).
 
-**This is the master branch. Should you run into problems, please report them by opening an issue at github and try if they go away by checking out the 'stable' branch. Thank you.**
+**This is the master branch. Should you run into problems, please report them by opening an [issue](git://github.com/Eonblast/Erlvolt/issues) at github and try if they go away by checking out the 'stable' branch. Thank you.**
 
 <hr/>
 
  **Download:** <https://github.com/Eonblast/Erlvolt/archives/master>  
- **Docs:** <http://eonblast.github.com/Erlvolt/>  
  **Issues:** <https://github.com/Eonblast/Erlvolt/issues>  
  **Repository:** <https://github.com/Eonblast/Erlvolt>  
 
@@ -27,23 +26,94 @@ While databases generally can be accessed via ODBC in Erlang, you should see bet
 
 ## Contents
 
+* [Installation][]
+* [Files][]
 * [Samples][]
 * [Usage][]
-* [Tests][]
+* [Options][]
 * [History][]
-* [Links][]
-* [Todo][]
+* [Tests][]
 * [License][]
 
 <hr/>
+
+## Installation                                        <a name=Installation></a>
 
 ## Getting VoltDB
 
     $ git clone git://github.com/VoltDB/voltdb.git voltdb  
 
+For download via the VoltDB website, see below.
+
 ## Getting Erlvolt
 
-    $ git clone git://github.com/Eonblast/erlvolt.git erlvolt  
+    $ git clone git://github.com/VoltDB/voltdb-client-erlang.git erlvolt
+
+For the git repository of the newest version, see below.
+
+## Files                                               <a name=Files></a>
+
+      Makefile                        build rules
+      README.html                     this file
+      README.md                       or this
+      
+      doc:
+          BENCHMARK-README.html       Benchmark How To
+          BENCHMARK1.html             Report of an Amazon EC2 benchmark
+          BENCHMARK1.md               markdown source
+          BENCHMARK2.html             Report of another Amazon EC2 benchmark
+          BENCHMARK2.md               markdown source
+          CHANGES.html                Changes between versions of this package
+          CHANGES.md                  markdown source
+          LICENSE                     LICENSE, ASCII
+      
+      ebin:
+          empty                       git placeholder
+      
+      etc:
+          ct_default.css              styles for TC sample in README.html and md
+          grep                        grep batch over all erl, hrl, md sources
+          include.mk                  Makefile include
+          markdown.lua                Lua markdown script to create html from md
+          markedoc.sed                sed script to create edoc from md
+          replace                     sed in-place replace over all erl, hrl, md sources
+      
+          bench:               
+                  Makefile            build rules AND SAMPLE
+                  README.html         Benchmark How To
+                  README.md           markdown source
+                  bench.config        host config and start sync
+                  bench.erl           benchmark module
+                  benchstart          multi-vm bench start
+          test:
+              basics_SUITE.erl	    basic functionality suite
+              environment_SUITE.erl   environment and setup tests
+      
+      examples:
+          Makefile                    build rules
+          hello.erl                   barebones hello world
+          hello_plus.erl              slightly more robust hello world
+          parallel.erl                parallel hello word sample
+          voter.erl                   VoltDB staple voter sample
+      
+      include:
+          erlvolt.hrl                 higher level driver include
+          erlvolt_wire.hrl            wire protocol level driver include
+      
+      priv:
+          empty                       git placeholder
+      
+      src:
+          Makefile                    
+          erlvolt.erl                 main driver module
+          erlvolt_conn.erl            socket connection
+          erlvolt_profiler.erl        optional statistics
+          erlvolt_wire.erl            protocol level bit wrangling
+          erlvolt.app.src             template for app file
+          erlvolt_app.erl             application behavior
+          erlvolt_conn_mgr.erl        connection manager
+          erlvolt_sup.erl             supervisors
+      
 
 ## Samples                                             <a name=Samples></a>
 
@@ -125,21 +195,29 @@ Let's run the hello world sample from above. We'll need a VoltDB server for that
 
 #### 1. Download VoltDB
 
-Download the newest VoltDB from `http://voltdb.com/community/downloads.php` and unpack, e.g.:
+You can clone the newest community edition from:
+
+    $ git clone git://github.com/VoltDB/voltdb.git voltdb  
+
+Or download the newest VoltDB from `http://voltdb.com/community/downloads.php` and unpack, e.g.:
 
     $ tar -zxvf voltdb-3.0.tar.gz
     $ mv voltdb-3.0 voltdb
 
 #### 2. Build and run a VoltDB sample database server
 
-The Hello, World! tutorial example comes with every VoltDB distribution. It builds and runs out of the box, on localhost. (Note that it is NOT in the `example/` directory, but in `tutorials/`, as opposed to another example database that we will be using, `Voter`):
+The Hello, World! tutorial example comes with every VoltDB distribution. It builds and runs out of the box, on localhost. (Note that it is NOT in the `examples/` directory, but in `doc/tutorials/`):
 
     $ cd voltdb/doc/tutorials/helloworld
     $ ./run.sh
 
 #### 3. Download and Build Erlvolt
 
-Get Erlvolt from `https://github.com/Eonblast/Erlvolt`, e.g.:
+Get the official Erlvolt release from the VoltDB repository:
+
+    $ git clone git://github.com/VoltDB/voltdb-client-erlang.git erlvolt
+
+Or get the newest version from from `https://github.com/Eonblast/Erlvolt`, e.g.:
 
     $ git clone https://github.com/Eonblast/Erlvolt.git erlvolt
     $ cd erlvolt
@@ -158,20 +236,21 @@ which is `Hello world!` in Swedish, where Erlang was invented by Joe Armstrong, 
 There are more sample programs:
 
 
-## More Samples
+More Samples
+------------
 
-Sample programs are in ./examples. 
+Erlang sample programs are in the driver root under `./examples`. 
 
 * **[hello](http://github.com/Eonblast/Erlvolt/blob/master/examples/hello.erl)** - a barebones Hello World   
 * **[hello_plus](http://github.com/Eonblast/Erlvolt/blob/master/examples/hello_plus.erl)** - a more robust Hello World    
-* **[parallel](http://github.com/Eonblast/Erlvolt/blob/master/examples/hello_parallel.erl)** - an asynchronous Hello World     
+* **[parallel](http://github.com/Eonblast/Erlvolt/blob/master/examples/parallel.erl)** - an asynchronous Hello World     
 * **[voter](http://github.com/Eonblast/Erlvolt/blob/master/examples/voter.erl)** - a VoltDB staple TV show voting example     
 
 To run the samples, do:
 
     $ make hello-barebones
     $ make hello-plus # same as 'make hello'
-    $ make hello-parallel
+    $ make parallel
     $ make voter
     
 or (after building Erlvolt.app and the database, as explained above), start hello etc. manually along these lines:
@@ -183,7 +262,7 @@ or (after building Erlvolt.app and the database, as explained above), start hell
 
 **Be sure to run the right Volt-database for the respective samples.**  
 
-They are in `voltdb/doc/tutorials/helloworld` for **hello, world!** examples and in `voltdb/examples/voter` for the **voter** example. Go into the respective directory of your VoltDB installation and build and start the database with `./run.sh`.
+The Volt sample databases are in `voltdb/doc/tutorials/helloworld` for all **hello, world!** examples and in `voltdb/examples/voter` for the **voter** example. Simply change into the respective directory of your VoltDB installation and build and start the database with `./run.sh`.
 
 ## Usage                                                    <a name="Usage"></a>
 
@@ -478,22 +557,10 @@ Work started in 2009 and I donated a first working version of the driver to Volt
 
 It is pure Erlang, blazingly fast and fit for VoltDB 3. It incorporates almost all of the previous, robust driver version. To ensure reliable, consistently high throughput, I drew from my experience maintaining the Erlang MySQL driver, Emysql. The connection pooling and call queueing is modeled after the ones used in that reliable workhorse, which was originally created by [Jacob Vorreuter][jv] and [Nick Gerakines][ng] at Electronic Arts. They enable the Erlang driver to absorb access peaks, and to distribute load across VoltDB server nodes. This could be particularly valuable since a VoltDB cluster can slow down quite a bit if you actually make it to use it at capacity.
 
-## Links and Reference                                         <a name=Links></a>
-
-* [Erlvolt on Github](http://github.com/Eonblast/Erlvolt)
-
-[1]: http://github.com/Eonblast/Erlvolt "Erlvolt"  
 [ng]: https://github.com/ngerakines     "Nick Gerakines"
 [jv]: https://github.com/JacobVorreuter "Jacob Vorreuter"  
 [bw]: bill@rupture.com                  "Bill Warnecke"  
 [hd]: hd2010@eonblast.com               "Henning Diedrich"  
-
-[Erlvolt]:   https://github.com/Eonblast/Erlvolt  
-           "Eonblast Erlvolt Repository"  
-[updates]: https://github.com/Eonblast/Erlvolt/commits/master
-           "Erlvolt updates"
-[docs]:    http://eonblast.github.com/Erlvolt/  
-           "Erlvolt online docs"  
 
 
 ## License                                                  <a name=License></a>
@@ -523,15 +590,14 @@ WHETHER IN AN ACTION OF CONTRACT,  TORT  OR OTHERWISE,  ARISING
 FROM,  OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
-[Choosing]: #Choosing
-[History]:  #History
-[Samples]:  #Samples
-[Usage]:    #Usage
-[Tests]:    #Tests
-[Links]:    #Links
-[Todo]:     #Todo
-[License]:  #License
-[Executing_Prepared_Statements]: #Executing_Prepared_Statements
-[Executing_Stored_Procedures]:   #Executing_Stored_Procedures
-[Adding_a_Pool]:                 #Adding_a_Pool
+[Installation]:  #Installation
+[Files]:         #Files
+[Samples]:       #Samples
+[Usage]:         #Usage
+[Options]:       #Options
+[History]:       #History
+[Tests]:         #Tests
+[Links]:         #Links
+[License]:       #License
+[Adding_a_Pool]: #Adding_a_Pool
 

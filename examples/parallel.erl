@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : examples/parallel.erl                                     %%%
-%%% Version     : 0.3.0/beta                                                %%%
+%%% Version     : 0.3/beta                                                  %%%
 %%% Description : Erlang VoltDB driver parallel 'Hello, world!' example     %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
@@ -14,7 +14,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.3.0/alpha - Erlang VoltDB client API.                      %%%
+%%%    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2013 VoltDB, LLC http://www.voltdb.com            %%%
@@ -107,7 +107,7 @@ run() ->
     %%% Start driver
     %%%
 
-    io:format("~n~nVoter Sample~n"),
+    io:format("~n~nParallel Sample~n"),
     io:format("-----------------------------------------------------------------------~n"),
 
     io:format("I.   start~n"),

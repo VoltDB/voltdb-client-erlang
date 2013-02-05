@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt_conn.erl                                          %%%
-%%% Version     : 0.3.0/beta                                                %%%
+%%% Version     : 0.3/beta                                                  %%%
 %%% Description : Erlang VoltDB driver joint supervisor module              %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
@@ -14,7 +14,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.3.0/alpha - Erlang VoltDB client API.                      %%%
+%%%    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2013 VoltDB, LLC http://www.voltdb.com            %%%
@@ -79,12 +79,12 @@
 -module(erlvolt_sup).
 -behaviour(supervisor).
 
--vsn("0.3.0/beta").
+-vsn("0.3/beta").
 -author("H. Diedrich <hd2012@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010-12 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.3.0/beta").
+-define(VERSION, "0.3/beta").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB driver").
 

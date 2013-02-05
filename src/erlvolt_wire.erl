@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt_wire.erl                                          %%%
-%%% Version     : 0.3.0/beta                                                %%%
+%%% Version     : 0.3/beta                                                  %%%
 %%% Description : Erlang VoltDB driver wire protocol handling               %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
@@ -14,7 +14,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.3.0/alpha - Erlang VoltDB client API.                      %%%
+%%%    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2013 VoltDB, LLC http://www.voltdb.com            %%%
@@ -78,12 +78,12 @@
 
 -module(erlvolt_wire).
 
--vsn("0.3.0/alpha").
+-vsn("0.3/beta   ").
 -author("H. Diedrich <hd2010@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010-12 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.3.0/beta").
+-define(VERSION, "0.3/beta").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB driver").
 
@@ -196,7 +196,7 @@
             ]).
 
 
-% TODO: use defines to import those that are exported for testing only
+% 
 
 %%%****************************************************************************
 %%% HELP
@@ -207,7 +207,7 @@
 help() ->
     banner(),
     io:format("See sample*.erl and test.erl for more information.~n").
-    % TODO update
+    % 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -452,7 +452,7 @@ erl_integer(<<>>) ->
 %%%----------------------------------------------------------------------------
 %%% VoltDB TINYINT wire code to Erlang integer.
 %%%----------------------------------------------------------------------------
-% TODO: replace all BYTE references with TINYINT.
+% 
 
 erl_integer(<<E:8/signed>>=V) when is_binary(V), E >= ?VOLT_BYTE_MIN, E =< ?VOLT_BYTE_MAX ->
 
@@ -504,7 +504,7 @@ erl_integer(<<E:128/signed>>=V) when is_binary(V) ->
 %   presented with a length preceding value of 0.                             %
 %   --- Pg. 2, VoltDB Client Wire Protocol Version 0, 05/05/10 ---            %
 %                                                                             %
-%   TODO: 1M LIMIT respecting UTF-8 multibytes                                %
+%   
 %                                                                             %
 %   Erlang default is big endian.                                             %
 %                                                                             %
@@ -553,7 +553,7 @@ volt_string(V) when is_binary(V) ->
 %%%----------------------------------------------------------------------------
 %%% @doc Erlang string (list) to VoltDB string wire code
 
-% TODO: ? erl_string(A) when is_list(A) ->
+% 
 %
 %   null.
 
@@ -561,13 +561,13 @@ volt_string(V) when is_binary(V) ->
 
 %%%----------------------------------------------------------------------------
 % VoltDB string code to Erlang string (list)
-% TODO: ? volt_string2(A) when is_binary(A) ->
+% 
 %
 %   null.
 
 %%%----------------------------------------------------------------------------
 % VoltDB string code to Erlang binary (list)
-% TODO: ? erl_binary(A) when is_binary(A) ->
+% 
 %
 %   null.
 
@@ -709,7 +709,7 @@ erl_nowtime(?VOLT_TIME_BINARY_TYPE(VInt)=V) when is_binary(V) ->
     erl_nowtime(VInt); % -> {Megasecs, Secs, Microsecs};
 
 
-erl_nowtime(V) when is_integer(V) -> % TODO: make better
+erl_nowtime(V) when is_integer(V) -> % 
 
     Mega  = trunc(V / ?TRILLION),
     Sec   = trunc((V - Mega * ?TRILLION) / ?MILLION),
@@ -802,7 +802,7 @@ erl_unixtime(V) when is_integer(V) ->
 %   =:= erlvolt:erl_number(<<146,104,0,0,0,0,0,0,0,0,0,0,0,0,0,0>>)           %
 %   =:= -1.4567508066305312e26                                                %
 %                                                                             %
-%   TODO: use/introduce an Erlang Decimal type using a Bignum lib.            %
+%   
 %                                                                             %
 %   header defines:                                                           %
 %   -define(VOLT_DECIMAL_BINARY_TYPE(E), E:128/signed-big).                   %
@@ -934,7 +934,7 @@ erl_integer_or_null_from_decimal(V) when is_binary(V) ->
 %                                                                             %
 %   --- pg. 4, VoltDB Client Wire Protocol Version 0, 12/11/09 ---            %
 %                                                                             %
-%   TODO: 1M size limit                                                       %
+%   
 %                                                                             %
 %******************************************************************************
 
@@ -1106,7 +1106,7 @@ erl_elements_feed(Type, Result, Left, Stream, Full) when Left > 0, Stream /= <<>
 
 %% @doc Make a VoltDB wire binary from an Erlang value, w/type specified.
 %% @spec volt_any(volttype(), any()) -> wire()
-%% TODO: volt_any(?VOLT_NULL,      Value) ->
+%% 
 volt_any(?VOLT_TINYINT,   Value) -> <<Value:?VOLT_TINYINT_TYPE>>;
 volt_any(?VOLT_SMALLINT,  Value) -> <<Value:?VOLT_SMALLINT_TYPE>>;
 volt_any(?VOLT_INTEGER,   Value) -> <<Value:?VOLT_INTINT_TYPE>>;
@@ -1124,7 +1124,7 @@ volt_any(T,_) -> throw({ bad_type, T }).
 %% @spec erl_any(volttype(), binary()) -> { Value::erltype(), Rest::binary() }
 
 % erl_any(?VOLT_ARRAY,     Stream) -> erl_array_feed     (Stream);
-% TODO: erl_any(?VOLT_NULL,      Stream) -> erl_null_feed      (Stream);
+% 
 erl_any(?VOLT_TINYINT,   Stream) -> erl_tinyint_feed   (Stream);
 erl_any(?VOLT_SMALLINT,  Stream) -> erl_smallint_feed  (Stream);
 erl_any(?VOLT_INTEGER,   Stream) -> erl_intint_feed    (Stream);
@@ -1140,7 +1140,7 @@ erl_any(T,_) -> throw({ bad_type, T }).
 %%%----------------------------------------------------------------------------
 % % @doc Make an Erlang value from any VoltDB wire type.
 % % @spec erl_any(wiretype() + binary()) -> { erltype(), Rest::binary() }
-% TODO: "erl_null_feed     (?VOLT_NULL,            Rest/binary) -> { null, Rest }."
+% 
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang integer from a TINYINT (8 bit) VoltDB wire type.
@@ -1170,7 +1170,7 @@ erl_bigint_feed   (<<Element:?VOLT_BIGINT_TYPE,     Rest/binary>>) -> { Element,
 %% @doc Make an Erlang float from a float VoltDB wire type.
 %% @spec erl_float_feed(wiretype() + binary()) -> { erltype(), Rest::binary() }
 
-erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest/binary>>) -> { erl_float_or_atom(Binary), Rest }. % TODO: is '_or_atom' sensible?
+erl_float_feed    (<<Binary:?VOLT_FLOAT_BINARY,     Rest/binary>>) -> { erl_float_or_atom(Binary), Rest }. % 
 
 %%%----------------------------------------------------------------------------
 %% @doc Make an Erlang null value from a NULL string VoltDB wire type.
@@ -1200,7 +1200,7 @@ erl_timestamp_feed(<<Binary:?VOLT_TIMESTAMP_BINARY, Rest/binary>>) -> { erl_time
 %% @doc Make an Erlang value from a decimal VoltDB wire type.
 %% @spec erl_decimal_feed(wiretype() + binary()) -> { 'null' | number(), Rest::binary() }
 
-erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_number_or_null(Binary), Rest }. % TODO: is '_or_null' sensible?
+erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_number_or_null(Binary), Rest }. % 
 
 % for erl_array_feed see above
 % for erl_table_feed see below
@@ -1238,7 +1238,7 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_numb
 %    * The size of the "Column Types" and "Column Names" arrays** is expec-   %
 %      ted to equal the value stored in "Column Count".                       %
 %    * Column names are limited to the ASCII character set.  Strings in row   %
-%      values are still UTF-8 encoded. (TODO: clarify Erlang / UTF-16)        %
+%      values are still UTF-8 encoded. (
 %    * Values with 4-byte (integer) length fields  are signed and are limi-   %
 %      ted to a max of 1 megabyte.                                            %
 %                                                                             %
@@ -1314,7 +1314,7 @@ erl_decimal_feed  (<<Binary:?VOLT_DECIMAL_BINARY,   Rest/binary>>) -> { erl_numb
 %                                                                             %
 %******************************************************************************
 
-%%% TODO: type names logic
+%%% 
 
 %%% @type  volttable()    = { volttable, rows(), column_names(), column_types() }.
 %%% @type  rows()         = [row()].
@@ -1423,13 +1423,13 @@ volt_fields([Type | Types], [Value | Values]) ->
 %%%                       { voltrow, [28,13, <<"vorlt">>] },
 %%%                       { voltrow, [11, 1, <<"world">>] } ] },                         '''
 %%%
-%%% TODO: use above as test.
+%%% 
 
 %%% @spec  erl_table(binary()) -> volttable()
 erl_table(<<Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream/binary>>=Bin)
     when Length > 0, is_binary(Bin) ->
 
-    % TODO: conditional, defensive switch for the following block
+    % 
 
     % assert length of binary
     try Length = size(Bin) - 4
@@ -1453,7 +1453,7 @@ erl_table(<<Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream/binary>>
     %% Make List of Column Names
     ColumnNames = [ Name || <<Size:32, Name:Size/binary>> <= ColumnNamesBinary ],
     try ColumnCount = length(ColumnNames) catch error:{badmatch,_} -> throw({bad_columncount_with_names, ColumnCount, length(ColumnNames)}) end,
-    % TODO: cache this globally
+    % 
 
     %% Scan Rows
     RowBinaries = [ RowBinary || <<Size:32, RowBinary:Size/binary>> <= RowsBinary ],
@@ -1477,7 +1477,7 @@ erl_table_feed(<<Length:32, _/binary>>=Bin) when Length > 0, is_binary(Bin) ->
 
     { erl_table(UseBin), Rest }.
 
-    % TODO: binary optimization may work better when not putting this in own function body?
+    % 
 
 
 %%% @doc   Parse a VoltTable from VoltDB wire protocol data, return a once-nested list.
@@ -1485,7 +1485,7 @@ erl_table_feed(<<Length:32, _/binary>>=Bin) when Length > 0, is_binary(Bin) ->
 erl_plaintable(<<Length:32, MetaLength:32, _Status:8, ColumnCount:16, Stream/binary>>=Bin)
     when Length > 0, is_binary(Bin) ->
 
-    % TODO: conditional, defensive switch for the following block
+    % 
 
     % assert length of binary
     try Length = size(Bin) - 4
@@ -1667,10 +1667,10 @@ get_string({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) ->
 
     to_list(lists:nth(Pos, List));
 
-    % TODO: make this to_binary
+    % 
 
 % Note: RecPos can be expected to be = Pos+1, as it observes the preceding tag atom.
-% TODO: write tests for this variant
+% 
 
 get_string(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos < 2 ->
 
@@ -1686,7 +1686,7 @@ get_string(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
 
     to_list(element(RecPos, Record)).
 
-    % TODO: make this to_binary
+    % 
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a field out of a row as string, by index number; null when Pos bad.
@@ -1710,10 +1710,10 @@ get_string_or_null({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) -
         _:_ -> null
     end;
 
-    % TODO: make this to_binary
+    % 
 
 % Note: RecPos can be expected to be = Pos+1, as it observes the preceding tag atom.
-% TODO: write tests for this variant
+% 
 
 get_string_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos < 2 ->
 
@@ -1733,7 +1733,7 @@ get_string_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
         _:_ -> null
     end.
 
-    % TODO: make this to_binary
+    % 
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a field out of a row as string, by column name; error when not found.
@@ -1791,7 +1791,7 @@ get_integer({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) ->
     to_integer(lists:nth(Pos, List));
 
 % Note: RecPos can be expected to be = Pos+1, as it observes the preceding tag atom.
-% TODO: write tests for this variant
+% 
 
 get_integer(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos < 2 ->
 
@@ -1807,7 +1807,7 @@ get_integer(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
 
     to_integer(element(RecPos, Record)).
 
-    % TODO: make this to_binary
+    % 
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a field out of a row as integer, by index number; null when Pos bad.
@@ -1831,10 +1831,10 @@ get_integer_or_null({ voltrow, List }, Pos) when is_integer(Pos), is_list(List) 
         _:_ -> null
     end;
 
-    % TODO: make this to_binary
+    % 
 
 % Note: RecPos can be expected to be = Pos+1, as it observes the preceding tag atom.
-% TODO: write tests for this variant
+% 
 
 get_integer_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record), RecPos < 2 ->
 
@@ -1854,7 +1854,7 @@ get_integer_or_null(Record, RecPos) when is_integer(RecPos), is_tuple(Record) ->
         _:_ -> null
     end.
 
-    % TODO: make this to_binary
+    % 
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a field out of a row as integer, by column name; error when not found.
@@ -1931,7 +1931,7 @@ to_integer(L) when is_binary(L) -> list_to_integer(binary_to_list(L));
 to_integer(L) when is_integer(L) -> L;
 to_integer(L) when is_float(L) -> trunc(L).
 
-% TODO: tests
+% 
 
 %%%----------------------------------------------------------------------------
 %%% @doc get roundtrip time in milliseconds of a response according to server
@@ -1973,7 +1973,7 @@ create_connection() ->
 
     create_connection("localhost", ?PORT, "program", "password").
 
-% TODO: make name fit Java API.
+% 
 
 %%%----------------------------------------------------------------------------
 %%% @doc  Client opens connection and logs in to the VoltDB server cluster.
@@ -1994,7 +1994,7 @@ create_connection(Host) ->
 create_connection(Host, ?PORT, Login, Password) ->
 
     create_connection(Host, ?PORT, Login, Password, "database", true, 100000, 100000, 10000, blocking).
-    % TODO make last four macros
+    % 
 
 %%%----------------------------------------------------------------------------
 %%% @doc  Client opens connection and logs in to the VoltDB server cluster.
@@ -2062,14 +2062,14 @@ connect(Host, Port, Nagle, SendBuffer, ReceiveBuffer, SendTimeout) ->
 			 {buffer, max(SendBuffer, ReceiveBuffer)},
 			 {sndbuf, SendBuffer},
 			 {recbuf, ReceiveBuffer},
-			 {send_timeout, SendTimeout} ], % Dialyzer does not accept infinity. TODO: ?
+			 {send_timeout, SendTimeout} ], % Dialyzer does not accept infinity. 
 
     connect(Host, Port, Opts).
 
 connect(Host, Port, Opts) ->
 
     SockOpts = [ binary, {packet, 4} ] ++ Opts,
-    %-% io:format("SockOpts: ~p", [SockOpts]),
+    
 
     {ok, Socket} =
         try
@@ -2124,7 +2124,7 @@ close(Socket) ->
 %    `[binary, {packet, 4}]'  to the `gen_tcp:connect call'.  Therefore,
 %    only the lone protocol version byte needs adding. (***)
 %
-%    TODO: should that be changed to have more better control over errors?
+%    
 %
 %    @end
 %
@@ -2559,7 +2559,7 @@ erl_response(W) ->
 
     { Protocol, _ } = erl_header(W),
 
-    <<_:?VOLT_HEADER_TYPE, AfterHeader/binary>> = W, % TODO: clumsy.
+    <<_:?VOLT_HEADER_TYPE, AfterHeader/binary>> = W, % 
 
     <<ClientData:8/binary,
       HasAppStatusString:1/integer,

@@ -77,7 +77,7 @@
 ###-------------------------------------------------------------------------###
 
 LIBDIR=$(shell erl -eval 'io:format("~s~n", [code:lib_dir()])' -s init stop -noshell)
-VERSION=0.3.0
+VERSION=0.3.1
 PKGNAME=erlvolt
 APP_NAME=erlvolt
 
@@ -131,7 +131,7 @@ hello-plus: all
 	@(cd examples; $(MAKE) hello-plus DEBUG=true)
 	erl -pa ./ebin -s hello_plus run -s init stop -noshell 
 
-# The actual, simpel hello.erl
+# A simpler hello.erl
 hello-barebones: all
 	@(cd examples; $(MAKE) hello DEBUG=true)
 	erl -pa ./ebin -s hello run -s init stop -noshell 
@@ -144,7 +144,6 @@ parallel: all
 #
 # Voter sample
 #
-# A slightly more robust hello world: hello_plus.erl
 
 voter: all
 	@(cd examples; $(MAKE) voter DEBUG=true)
@@ -154,13 +153,11 @@ voter: all
 # Benchmark variants
 #
 
-
 bench: bench-vsd
 	# 'make clean fast bench' for faster, HiPE-compiled beams. 
 	# 'make clean profile bench' for rolling stats during bench. 
 
 benches: bench-vsm bench-vsd bench-vbm bench-vbd
-
 
 ### Voter steady managed (reference 13,000 T/sec/core)
 bench-vsm:
@@ -199,30 +196,29 @@ bench-help:
 # Doc Creation
 #
 
-# Create doc HTML from source comments
-docs:
-	sed -E -f etc/markedoc.sed README.md > doc/readme.edoc
-	sed -E -f etc/markedoc.sed CHANGES.md > doc/changes.edoc
-	erl -noshell -run edoc_run application "'erlvolt'" '"."' '[{def,{vsn,""}},{stylesheet, "erlvolt-style.css"}]'
-	LANG=C sed -E -i "" -e "s/<table width=\"100%\" border=\"1\"/<table width=\"100%\" class=index border=\"0\"/" doc/*.html
-
-# Pushes created docs into dir ../Erlvolt-github-pages to push to github pages.
-# Make sure to do 'make docs' first.
-# will fail if you haven't checked out github pages into ../Erlvolt-github-pages
-pages:
-	(cd ../Erlvolt-github-pages; git pull origin gh-pages)
-	cp -r doc/* ../Erlvolt-github-pages
-	(cd ../Erlvolt-github-pages; git add .; git commit -m 'make pages'; git push origin gh-pages)
-
 # Create HTML from Markdown to test README.md appearance
 html:
 	lua etc/markdown.lua README.md
 	lua etc/markdown.lua doc/CHANGES.md
 	lua etc/markdown.lua doc/BENCHMARK1.md
+	lua etc/markdown.lua doc/BENCHMARK2.md
 	lua etc/markdown.lua etc/bench/README.md && cp etc/bench/README.html doc/BENCHMARK-README.html
 #
 # Building and Deployment
 #
+
+# clean and doc creation for release, any branch 
+release: clean html
+
+# clean for master branch
+master: release
+	etc/replace %-%.* ""
+	etc/replace TODO.*$ ""
+	rm -f doc/edoc-info
+	rm -f doc/erlang.png
+	rm -f doc/erlvolt-footer.png
+	rm -f doc/erlvolt-style.css
+	rm -f doc/stylesheet.css
 
 clean:
 	@# these can all appear
@@ -248,9 +244,11 @@ clean:
 	@rm -f etc/test/jquery*.js 
 	@rm -rf $(PKGNAME)-$(VERSION)
 	@rm -f $(PKGNAME)-$(VERSION).tgz
+	# clean
 
 clean-docs:
 	@rm -f doc/readme.edoc
+	@rm -f doc/changes.edoc
 	@rm -f doc/overview.edoc
 	@rm -f doc/*.html
 	@rm -f doc/README.html
@@ -265,8 +263,6 @@ package: clean
 	@COPYFILE_DISABLE=true tar zcf $(PKGNAME)-$(VERSION).tgz $(PKGNAME)-$(VERSION)
 	@rm -rf $(PKGNAME)-$(VERSION)/
 
-install: all
-	@for i in ebin/*.beam ebin/*.app include/*.hrl src/*.erl; do install -m 644 -D $$i $(prefix)/$(LIBDIR)/$(PKGNAME)-$(VERSION)/$$i ; done
 
 #
 # Tests
@@ -276,9 +272,3 @@ test: all
 	(cd etc/test; ct_run -suite environment_SUITE basics_SUITE -pa ../../ebin)
 
 
-dialyzer: all hello.beam
-	@echo The first run with dializer can take a minute for preparations
-	@echo You should NOT have commented out the +debug_info flag in include.mk
-	@echo If you did that, change it back and do make clean
-	dialyzer --check_plt -r hello.beam ebin/ --apps erts kernel stdlib crypto
-	dialyzer -r hello.beam ebin/

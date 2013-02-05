@@ -1,3 +1,0 @@
-{application,erlvolt}.
-{packages,[]}.
-{modules,[erlvolt_app,erlvolt_sup]}.

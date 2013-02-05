@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt_wire.hrl                                          %%%
-%%% Version     : 0.3.0/beta                                                %%%
+%%% Version     : 0.3/beta                                                  %%%
 %%% Description : Erlang VoltDB driver wire protocol constants              %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
@@ -14,7 +14,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.3.0/alpha - Erlang VoltDB client API.                      %%%
+%%%    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2013 VoltDB, LLC http://www.voltdb.com            %%%
@@ -250,9 +250,9 @@
 
 -define(VOLT_TINYINT_WIRE_BYTES,   1).
 -define(VOLT_SMALLINT_WIRE_BYTES,  2).
--define(VOLT_SHORTINT_WIRE_BYTES,  2). % TODO: unify 'short' and 'small'
+-define(VOLT_SHORTINT_WIRE_BYTES,  2). % 
 -define(VOLT_INTEGER_WIRE_BYTES,   4).
--define(VOLT_INTINT_WIRE_BYTES,    4). % TODO: make 'integer' consistent
+-define(VOLT_INTINT_WIRE_BYTES,    4). % 
 -define(VOLT_BIGINT_WIRE_BYTES,    8).
 -define(VOLT_FLOAT_WIRE_BYTES,     4).
 -define(VOLT_TIMESTAMP_WIRE_BYTES, 8).

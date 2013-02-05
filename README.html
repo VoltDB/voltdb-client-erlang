@@ -1,0 +1,638 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>voltdb-client-erlang Erlvolt 0.3.1/beta</title>
+	<link rel="stylesheet" type="text/css" href="default.css" />
+</head>
+<body>
+
+<h1>voltdb-client-erlang Erlvolt 0.3.1/beta</h1>
+
+<p><strong>Release: 'Erlvolt 0.3.1/beta'</strong> <br/>
+<strong>Author: H. Diedrich</strong> <br/>
+<strong>Production: Eonblast Corporation</strong> <br/>
+<strong>Copyright: (c) 2013 VoltDB, Inc</strong> <br/>
+<strong>Licence: MIT</strong> <br/>
+<strong>Date: 4 Feb 2013</strong>  </p>
+
+<p>This is an <a href="http://www.erlang.org">Erlang</a> <a href="hhtp://www.voltdb.com">VoltDB</a> driver provided by <a href="http://www.eonblast.com">Eonblast</a>. It is <a href="#Samples">easy</a> to use but provides strong <a href="#Adding_a_Pool">connection pooling</a> and a broad array of <a href="#Options">options</a>. It is optimized for a central node architecture and super high velocity OLTP.</p>
+
+<p>While databases generally can be accessed via ODBC in Erlang, you should see better performance when using a <em>driver</em> like Erlvolt. For <a href="#Samples">samples</a>, <a href="#Usage">API description</a> and fine tuning <a href="#Options">options</a> see below. </p>
+
+<p><a href="http://github.com/Eonblast/Erlvolt">Erlvolt</a> was initiated and <a href="#History">created</a> by <a href="http://www.eonblast.com">Eonblast</a>, in this second incarnation with sponsorship by <a href="http://www.voltdb.com">VoltDB</a>.</p>
+
+<p><strong>This is the master branch. Should you run into problems, please report them by opening an <a href="git://github.com/Eonblast/Erlvolt/issues">issue</a> at github and try if they go away by checking out the 'stable' branch. Thank you.</strong></p>
+
+
+<hr/>
+
+
+<p> <strong>Download:</strong> <a href="https://github.com/Eonblast/Erlvolt/archives/master">https://github.com/Eonblast/Erlvolt/archives/master</a> <br/>
+ <strong>Issues:</strong> <a href="https://github.com/Eonblast/Erlvolt/issues">https://github.com/Eonblast/Erlvolt/issues</a> <br/>
+ <strong>Repository:</strong> <a href="https://github.com/Eonblast/Erlvolt">https://github.com/Eonblast/Erlvolt</a>  </p>
+
+
+<hr/>
+
+
+<h2>Contents</h2>
+
+<ul>
+    <li><a href="#Installation">Installation</a></li>
+    <li><a href="#Files">Files</a></li>
+    <li><a href="#Samples">Samples</a></li>
+    <li><a href="#Usage">Usage</a></li>
+    <li><a href="#Options">Options</a></li>
+    <li><a href="#History">History</a></li>
+    <li><a href="#Tests">Tests</a></li>
+    <li><a href="#License">License</a></li>
+</ul>
+
+
+<hr/>
+
+
+<h2>Installation                                        <a name=Installation></a></h2>
+
+<h2>Getting VoltDB</h2>
+
+<p>    $ git clone git://github.com/VoltDB/voltdb.git voltdb  </p>
+
+<p>For download via the VoltDB website, see below.</p>
+
+<h2>Getting Erlvolt</h2>
+
+<p>    $ git clone git://github.com/VoltDB/voltdb-client-erlang.git erlvolt</p>
+
+<p>For the git repository of the newest version, see below.</p>
+
+<h2>Files                                               <a name=Files></a></h2>
+
+<pre><code>  Makefile                        build rules
+  README.html                     this file
+  README.md                       or this
+
+  doc:
+      BENCHMARK-README.html       Benchmark How To
+      BENCHMARK1.html             Report of an Amazon EC2 benchmark
+      BENCHMARK1.md               markdown source
+      BENCHMARK2.html             Report of another Amazon EC2 benchmark
+      BENCHMARK2.md               markdown source
+      CHANGES.html                Changes between versions of this package
+      CHANGES.md                  markdown source
+      LICENSE                     LICENSE, ASCII
+
+  ebin:
+      empty                       git placeholder
+
+  etc:
+      ct_default.css              styles for TC sample in README.html and md
+      grep                        grep batch over all erl, hrl, md sources
+      include.mk                  Makefile include
+      markdown.lua                Lua markdown script to create html from md
+      markedoc.sed                sed script to create edoc from md
+      replace                     sed in-place replace over all erl, hrl, md sources
+
+      bench:               
+              Makefile            build rules AND SAMPLE
+              README.html         Benchmark How To
+              README.md           markdown source
+              bench.config        host config and start sync
+              bench.erl           benchmark module
+              benchstart          multi-vm bench start
+      test:
+          basics_SUITE.erl      basic functionality suite
+          environment_SUITE.erl   environment and setup tests
+
+  examples:
+      Makefile                    build rules
+      hello.erl                   barebones hello world
+      hello_plus.erl              slightly more robust hello world
+      parallel.erl                parallel hello word sample
+      voter.erl                   VoltDB staple voter sample
+
+  include:
+      erlvolt.hrl                 higher level driver include
+      erlvolt_wire.hrl            wire protocol level driver include
+
+  priv:
+      empty                       git placeholder
+
+  src:
+      Makefile                    
+      erlvolt.erl                 main driver module
+      erlvolt_conn.erl            socket connection
+      erlvolt_profiler.erl        optional statistics
+      erlvolt_wire.erl            protocol level bit wrangling
+      erlvolt.app.src             template for app file
+      erlvolt_app.erl             application behavior
+      erlvolt_conn_mgr.erl        connection manager
+      erlvolt_sup.erl             supervisors
+</code></pre>
+
+
+<h2>Samples                                             <a name=Samples></a></h2>
+
+<h3>Hello World</h3>
+
+<p>This is a hello world program. Follow the steps below to try it out. </p>
+
+<pre><code>-module(hello).
+-export([run/0]).
+-import(erlvolt).
+-include("erlvolt.hrl").
+
+run() -&gt;
+
+    crypto:start(),
+    application:start(erlvolt),
+
+    erlvolt:add_pool(hello_pool, [{"localhost", 21212}]),
+
+    erlvolt:call_procedure(hello_pool, "Insert", ["Hej", "världen", "Swedish"]),
+
+    Result = erlvolt:call_procedure(hello_pool, "Select", ["Swedish"]),
+
+    Table = erlvolt:get_table(Result, 1),
+    Row = erlvolt:get_row(Table, 1),
+    Hello = erlvolt:get_string(Row, Table, "HELLO"), 
+    World = erlvolt:get_string(Row, Table, "WORLD"),
+
+    io:format("~n~s ~s!~n~n", [Hello, World]),
+
+    erlvolt:close_pool(hello_pool).
+</code></pre>
+
+<p>We'll be coming back to running this on your machine in a minute. Before we do, let's look at the basic building blocks first:</p>
+
+<h3>Executing an SQL Statement</h3>
+
+<p>In VoltDB, in production, you are using stored procedures, written in Java. For more
+information about that please check out the [VoltDB docs][]. Such stored procedure is invoked
+like this using Erlvolt:</p>
+
+<pre><code>    Result = erlvolt:call_procedure(hello_pool, "Select", ["Swedish"]).
+</code></pre>
+
+<p>This is a snychronous, blocking call that returns the result data. The first parameter to the function is the pool ID atom, the second the name of the stored procedure that we want to invoke, as a string. The last a list of parameters we want to send to the SP.</p>
+
+<p>Note that the stored procedure goes by the name 'Select' and that is the reason why 'Select' is the second parameter above. The query is <code>SELECT HELLO, WORLD FROM HELLOWORLD WHERE DIALECT = ?;</code> as you can see in <code>voltdb/doc/tutorials/helloworld/Select.java</code>.</p>
+
+<p>For the exact spec, see below, <a href="#Usage">Usage</a>. Regarding the 'pool', also see below.</p>
+
+<h3>Executing asynchronously</h3>
+
+<p>In Erlang, you would usually be executing <em>synchronous</em> calls from many parallel worker
+processes, rather than asynchronous ones. Due to the architecture of Erlang this will
+amount to asynchronous action. But the driver can be used to make asynchronous calls,
+too. In which case the execute function returns as fast as possible, and the result is
+coming in via message passing, as soon as it becomes available from the VoltDB server:</p>
+
+
+<pre><code>    erlvolt:call_procedure(hello_pool, "Select", ["Swedish"], [asynchronous]),
+
+    receive Result -&gt; Result end.
+</code></pre>
+
+<h3>Accessing Response Data</h3>
+
+<p>Regardless of how you called, you extract the actual values from the response data structure with getter functions. The response data structure contains the complete response; the getter functions point into it, there is no iteration or stream.</p>
+
+<pre><code>    Table = erlvolt:get_table(Result, 1),
+    Row = erlvolt:get_row(Table, 1),
+    Hello = erlvolt:get_string(Row, Table, "HELLO"), 
+</code></pre>
+
+<h3>Adding a Connection to the Connection Pool</h3>
+
+<p>Erlvolt uses a sophisticated connection pooling mechanism. You can have multiple connections in each pool, which will usually be one connection to each node in the VoltDB cluster. And you can have multiple pools which allows you to access multiple clusters. The pools have a queue each to cushion access peaks, protecting the server from overload.</p>
+
+<pre><code>    erlvolt:add_pool(hello_pool, [{"localhost", 21212}]),
+</code></pre>
+
+<h3>Running Hello World</h3>
+
+<p>Let's run the hello world sample from above. We'll need a VoltDB server for that. This walkthrough assumes a Unix or Linux OS. </p>
+
+<h4>1. Download VoltDB</h4>
+
+<p>You can clone the newest community edition from:</p>
+
+<pre><code>$ git clone git://github.com/VoltDB/voltdb.git voltdb  
+</code></pre>
+
+<p>Or download the newest VoltDB from <code>http://voltdb.com/community/downloads.php</code> and unpack, e.g.:</p>
+
+<pre><code>$ tar -zxvf voltdb-3.0.tar.gz
+$ mv voltdb-3.0 voltdb
+</code></pre>
+
+<h4>2. Build and run a VoltDB sample database server</h4>
+
+<p>The Hello, World! tutorial example comes with every VoltDB distribution. It builds and runs out of the box, on localhost. (Note that it is NOT in the <code>examples/</code> directory, but in <code>doc/tutorials/</code>):</p>
+
+<pre><code>$ cd voltdb/doc/tutorials/helloworld
+$ ./run.sh
+</code></pre>
+
+<h4>3. Download and Build Erlvolt</h4>
+
+<p>Get the official Erlvolt release from the VoltDB repository:</p>
+
+<p>    $ git clone git://github.com/VoltDB/voltdb-client-erlang.git erlvolt</p>
+
+<p>Or get the newest version from from <code>https://github.com/Eonblast/Erlvolt</code>, e.g.:</p>
+
+<pre><code>$ git clone https://github.com/Eonblast/Erlvolt.git erlvolt
+$ cd erlvolt
+$ make
+</code></pre>
+
+<h4>4. Run the Hello Sample</h4>
+
+<pre><code>$ make hello
+</code></pre>
+
+<p>You will see a simple </p>
+
+<pre><code>Hej, världen!
+</code></pre>
+
+<p>which is <code>Hello world!</code> in Swedish, where Erlang was invented by Joe Armstrong, Robert Virding and Mike Williams.</p>
+
+<p>There are more sample programs:</p>
+
+
+<h2>More Samples</h2>
+
+<p>Erlang sample programs are in the driver root under <code>./examples</code>. </p>
+
+<ul>
+    <li><strong><a href="http://github.com/Eonblast/Erlvolt/blob/master/examples/hello.erl">hello</a></strong> - a barebones Hello World   </li>
+    <li><strong><a href="http://github.com/Eonblast/Erlvolt/blob/master/examples/hello_plus.erl">hello_plus</a></strong> - a more robust Hello World    </li>
+    <li><strong><a href="http://github.com/Eonblast/Erlvolt/blob/master/examples/parallel.erl">parallel</a></strong> - an asynchronous Hello World     </li>
+    <li><strong><a href="http://github.com/Eonblast/Erlvolt/blob/master/examples/voter.erl">voter</a></strong> - a VoltDB staple TV show voting example     </li>
+</ul>
+
+<p>To run the samples, do:</p>
+
+<pre><code>$ make hello-barebones
+$ make hello-plus # same as 'make hello'
+$ make parallel
+$ make voter
+</code></pre>
+
+<p>or (after building Erlvolt.app and the database, as explained above), start hello etc. manually along these lines:</p>
+
+<pre><code>$ make
+$ cd examples
+$ erlc -I ../include hello.erl
+$ erl -pa ../ebin -s hello run -s init stop -noshell
+</code></pre>
+
+<p><strong>Be sure to run the right Volt-database for the respective samples.</strong>  </p>
+
+<p>The Volt sample databases are in <code>voltdb/doc/tutorials/helloworld</code> for all <strong>hello, world!</strong> examples and in <code>voltdb/examples/voter</code> for the <strong>voter</strong> example. Simply change into the respective directory of your VoltDB installation and build and start the database with <code>./run.sh</code>.</p>
+
+<h2>Usage                                                    <a name="Usage"></a></h2>
+
+<h4>Starting an Application</h4>
+
+<p>The Erlvolt driver is an Erlang application. It also uses crypto. This is how you start the driver. If crypto is already working, which is likely in a more complex Erlang program, the first lines is obsolete.</p>
+
+<pre><code>crypto:start(),
+application:start(Erlvolt).
+</code></pre>
+
+<h4>Adding a Pool                                  <a name="Adding_a_Pool"></a></h4>
+
+<p>A pool consists of a number of connections, one to each server in the VoltDB cluster. In the future you will be able to have multiple pools to multiple clusters.</p>
+
+<pre><code>    erlvolt:add_pool(hello_pool, [{"localhost", 21212}]),
+</code></pre>
+
+<h4>Executing SQL Statements</h4>
+
+<p>SQL statements are most of the times stored procedure calls in VoltDB. But you can also freely form 'ad hoc' queries. Calls can be synchronous or asynchronous.</p>
+
+<pre><code>    Result = erlvolt:call_procedure(hello_pool, "Select", ["Swedish"]).
+
+    Result = erlvolt:call_procedure(PoolID, "@AdHoc", ["select COUNT(*) as cnt from contestants"]).
+
+    Result = erlvolt:call_procedure(hello_pool, "Select", ["Swedish"], [asynchronous]),        
+    receive 
+        Result -&gt; Result
+     end.
+</code></pre>
+
+<h4>Accessing the Result</h4>
+
+<p>The Result of a query comes back in one piece. You extract tables, rows and fields out of it like this:</p>
+
+<pre><code>    Table = erlvolt:get_table(Result, 1),
+    Row = erlvolt:get_row(Table, 1),
+    Hello = erlvolt:get_string(Row, Table, "HELLO"), 
+</code></pre>
+
+<h4>The Stored Procedures</h4>
+
+<p>The results arrive from the Java stored procedure that you would have complete freedom to program as simple or complex as you want. Knowledge of what you are returning from the SP is indispensable to handle the response. The meta structure is always a list of 'tables'. For example, the above Result comes from this Java procedure, which you find in  <code>voltdb/doc/tutorials/helloworld/Select.java</code>:</p>
+
+<pre><code>  public class Select extends VoltProcedure {
+
+    public final SQLStmt sql = new SQLStmt(
+        "SELECT HELLO, WORLD FROM HELLOWORLD " +
+        " WHERE DIALECT = ?;"
+    );
+
+    public VoltTable[] run( String language)
+        throws VoltAbortException {
+            voltQueueSQL( sql, language );
+            return voltExecuteSQL();
+        }
+  }
+</code></pre>
+
+<p>Learn more about VoltDB in this <a href="http://voltdb.com/downloads/documentation/GettingStarted.pdf">hands-on tutorial</a>.</p>
+
+<h2>Tests                                             <a name="Tests"></a></h2>
+
+<p><strong>Please add a Common Test suite if you are proposing a pull request.</strong></p>
+
+<h3>Basic Tests</h3>
+
+<p>Common Test suites (Unit Tests) can be found in the <code>etc/test</code> folder. They help to test the basic functionality of the driver. They might also help you find trip ups in your Erlang and VoltDB system set up (<code>environment</code> and <code>basics</code> suites).</p>
+
+<p>If you are new to Erlang: <em>Common Tests</em> are the Erlang pendant to Unit Tests. They work in the same spirit but employ the Erlang way to assert, using the bind operator  '<code>=</code>' (sic) and have a native focus on parallel execution. They are organized in suites and give you a summary of passed and failed tests in the end. But the test is centered around the idea of crashing or not, more than evaluating something to true. To verify results, you write things like <code>ok = somefunc()</code> where <code>somefunc()</code> is expected to return the atom <code>ok</code>. This will crash if <code>somefunc()</code> returns something other than <code>ok</code> and result in one fail count for the test suite, but not the abortion of the test suite. </p>
+
+<p>For the tests you need to have the VoltDB <strong>Voter</strong> sample database running, which you find in the VoltDB installation:</p>
+
+<pre><code>$ cd voltdb/examples/voter
+$ ./run.sh
+</code></pre>
+
+<p>To run the tests, in a different terminal window, in the driver root folder, type:</p>
+
+<pre><code>$ make test
+</code></pre>
+
+<p>These tests currently check access to the database (environment suite) and basic  functionality (basics suite).</p>
+
+<p>The screen will look like the following but the actual results of Common Tests are stored in html.</p>
+
+<pre><code>  make[1]: Nothing to be done for `all'.
+  make[1]: Nothing to be done for `all'.
+  (cd test; ct_run -suite environment_SUITE basics_SUITE -pa ../ebin /opt/local/var/macports/software/erlang/R14A_0/opt/local/lib/erlang/lib/crypto-2.0/ebin/)
+  Erlang R15B02 (erts-5.9.2) [source] [64-bit] [smp:4:4] [async-threads:0] [hipe] [kernel-poll:false]
+
+  Converting "../ebin" to "/Users/hd/Erlvolt2/ebin" and re-inserting with add_patha/1
+
+  Eshell V5.9.2  (abort with ^G)
+  (ct@metal)1&gt; 
+  Common Test v1.6.2 starting (cwd is /Users/hd/Erlvolt2/test)
+
+
+  Common Test: Running make in test directories...
+  Recompile: basics_SUITE
+
+  CWD set to: "/Users/hd/Erlvolt2/test/ct_run.ct@metal.2013-02-02_13.17.55"
+
+  TEST INFO: 2 test(s), 9 case(s) in 2 suite(s)
+
+  Testing hd.Erlvolt2.environment_SUITE: Starting test, 6 test cases
+  Testing hd.Erlvolt2.environment_SUITE: TEST COMPLETE, 6 ok, 0 failed of 6 test cases
+
+  Testing hd.Erlvolt2.basics_SUITE: Starting test, 3 test cases
+  Testing hd.Erlvolt2.basics_SUITE: TEST COMPLETE, 3 ok, 0 failed of 3 test cases
+
+  Updating /Users/hd/Erlvolt2/test/index.html... done
+  Updating /Users/hd/Erlvolt2/test/all_runs.html... done
+</code></pre>
+
+<p>The last lines give you the starting point for the detailed test results in html.</p>
+
+
+<div style="font-size:.6em">
+<link rel="stylesheet" href="etc/ct_default.css" type="text/css">
+<center>
+<h1>Test Results</h1>
+</center>
+<br />
+<center>
+<div id="button_holder" class="btn">
+<a href="#">ALL RUNS</a>
+</div><br /><br />
+<table id="SortableTable">
+<thead>
+<tr>
+<th>Test Name</th>
+<th>Label</th>
+<th>Test Run Started</th>
+<th>Ok</th>
+<th>Failed</th>
+<th>Skipped<br>(User/Auto)</th>
+<th>Missing<br>Suites</th>
+<th>Node</th>
+<th>CT Log</th>
+<th>Old Runs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#">hd.Erlvolt2.basics_SUITE</a></td>
+<td align=center><b>-</b></td>
+<td>Sat Feb 02 2013 13:17:55</td>
+<td align=right>3</td>
+<td align=right>0</td>
+<td align=right>0 (0/0)</td>
+<td align=right>0</td>
+<td align=right>ct@metal</td>
+<td><a href="#">CT Log</a></td>
+<td><a href="#">Old Runs</a></td>
+</tr>
+<tr class="even">
+<td><a href="#">hd.Erlvolt2.environment_SUITE</a></td>
+<td align=center><b>-</b></td>
+<td>Sat Feb 02 2013 13:17:55</td>
+<td align=right>6</td>
+<td align=right>0</td>
+<td align=right>0 (0/0)</td>
+<td align=right>0</td>
+<td align=right>ct@metal</td>
+<td><a href="#">CT Log</a></td>
+<td><a href="#">Old Runs</a></td>
+</tr>
+</tbody>
+<tfoot>
+<tr class="odd">
+<td><b>Total</b></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td align=right><b>9<b></td>
+<td align=right><b>0<b></td>
+<td align=right>0 (0/0)</td>
+<td align=right><b>0<b></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tfoot>
+</table>
+</center>
+<center>
+<br /><br />
+<div class="copyright">Copyright &copy; 2013 <a href="#">Open Telecom Platform</a><br />
+Updated: <!date>Sat Feb 02 2013 13:17:57<!/date><br />
+</div>
+
+<p></center>
+</div></p>
+
+<p>It is easy to add tests following the template of <code>etc/test/basic_SUITE.erl</code>. Note that <code>io:format()</code> in test suites does NOT print to the screen. It prints 'to' the lowest level html details result page. Use <code>ct:log()</code> instead, in a Common Test suite module, when you want to log to screen, while testing the tests.</p>
+
+<p>It won't hurt to read about the <a href="http://www.erlang.org/doc/apps/common_test/basics_chapter.html">basics of Erlang Common Tests</a>.</p>
+
+
+<h2>Options                                               <a name="Options"></a></h2>
+
+<p>The sequence of events of the execution of a call depends on the call options. The options go into a propslist in the third parameter of the call_procedure function, e.g.:</p>
+
+<pre><code>erlvolt:add_pool(PoolID, Hosts, [force, direct]),
+</code></pre>
+
+<p>The options are addressing four major issues:</p>
+
+<h3>Call Management</h3>
+<pre><code>force | queue | drop  
+</code></pre>
+<p>Determine whether the call management's peak buffer, a call <code>queue</code> is used or not; the call management can also be used without the queue and set to <code>drop</code> calls that can't be executed immediately; or the call management can be circumvented using <code>force</code>, in which case a strict round robin is applied for choosing the cluster node to send a call to.</p>
+
+<h3>Monitoring</h3>
+<pre><code>monitored | direct  
+</code></pre>
+<p>A call can be executed through a <code>monitored</code>, specially spawned workhorse process, which shields the user process from problems in the driver; or it can be executed in <code>direct</code> fashion were the internal driver functions are executed by the user process itself.</p>
+
+<h3>Synchronous Execution</h3>
+<pre><code>synchronous | asynchronous
+</code></pre>
+<p>With <code>synchronous</code> execution, <code>call_procedure()</code> blocks until it receives the answer from the server and returns the actual result; with <code>asynchronous</code> execution, the call returns immediately and the result is sent to the calling processes' message box.</p>
+
+<h3>Acknowledgement Level</h3>
+<pre><code>awaitsendack | fireandforget | blowout  
+</code></pre>
+<p>For fine tuning, the acknowledgement level can be used to make call execution 'one-way'. These options only apply to  <code>asynchronous</code> execution. The setting of <code>awaitsendack</code> means that call_procedure() returns after it got the ok from the socket that the call was successfully sent. This is meaningful, and can cause a long wait, because of <strong>backpressure</strong>: a VoltDB cluster can stop reading from the socket temporarily in a sign that it is at capacity. A less thorough setting is <code>fireandforget</code>, which will return immediately from the send and will have any problems from the socket sent to the user processes' mailbox, just as any error coming from the server, But all non-error results coming from the server are silently dropped. Finally, <code>blowout</code> suppresses any feedback, be it from the sending itself or any responses or errors from the server.</p>
+
+<h2>Safe Default</h2>
+
+<p>The default setting is <code>[queue, monitored, synchronous]</code>, it is the safest, most comfortable, most sensible and slowest. Contrary to intuition you are NOT loosing parallelism or block your application using <code>synchronous</code> execution because a real Erlang program inevitably consists of thousands of parallel microprocesses. Within the individual microprocess you will probably <em>want</em> to wait blocking for results from the server and that is what the <code>synchronous</code> setting does for you. Spawning a dedicated <code>monitored</code> worker process protects you against possible immaturities in the driver. If something bad happens, the worker will crash and not your own, calling process, so you need not defend against that yourself. There is still some crashing involved, so this doesn't make it less Erlangish, just easier to debug. The <code>queue</code> will usually increase performance on the bottom line as the VoltDB cluster is picky about overload, and slows down when it gets too much. With unpredictable load the queue will even out peaks nicely and the server cluster nodes will be served based on their load rather than simple round-robin.</p>
+
+<h2>Fast Setting</h2>
+
+<p>The 'fastest' setting can be <code>[force, direct, asynchronous]</code> and this is used for the benchmarks. It's not actually the 'fastest', but the one with highest throughput, which is what VoltDB is all about. If you don't even care for the answers from the server, you could add <code>fireandforget</code>, or even <code>blowout</code> for completely blind, one-way offloading of calls, UDP-style. There are settings were this can make sense. The <code>force</code> setting circumvents the Connection Managemer and its <code>queue</code> and sends calls directly to the server, using Connections in the pool blindly round-robin. This can easily overload the server in a benchmark when you firehose from enough client machines, which can make the results both roughly 10 times slower (in the ~100ms area instead of ~5ms), and the throughput 10 times lower (very roughly, ~1,000 transactions per CPU core instead of ~10,000), than if you had used the <code>queue</code>. But if you have a predictably limited, steady flow of data, near the capacity of your system, then <code>force</code> can give you 20%-50% higher throughput, with the same latency as <code>queue</code>.</p>
+
+<h2>Architecture                                               <a name="Architecture"></a></h2>
+
+<h3>Execution</h3>
+
+<p>The driver is started once and can serve multiple processes, non-blocking, or blocking, using multiple connections and connection pools.</p>
+
+<p>One connection is established to each node of a VoltDB cluster. Those connections form one 'connection pool'. Erlvolt can serve multiple pools in parallel. However, it has only one Connection Manager to organize load across connections. So the unlikely case of massively many pools would be bottle-necked by this manager and it should be circumvented using the <code>force</code> option.</p>
+
+<p>User functions usually have the atomic id of a pool as their first parameter to tell the driver which server cluster is addressed.</p>
+
+<p>Results from the server are delivered as complete structures. There is no notion of streaming large results as this is not the use case for OLTP, but brief results, often simpel write acknowledgements, are the norm.</p>
+
+<p>As is customary for VoltDB, queries are usually executions of stored procedures, baked into the VoltDB cluster and programmed in Java. But normal queries, so-called 'ad-hoc queries' are easily available with this driver, for tests and non-performance sensitive experimentation. E.g.</p>
+
+<pre><code> R = erlvolt:call_procedure(mypool, "@AdHoc", ["SELECT COUNT(*) AS cnt FROM votes"]),
+</code></pre>
+
+
+<h3>Structure</h3>
+
+<p>The Erlvolt application* consists of three supervisors, two gen servers, multiple connection management processes and optional per-call workhorse processes.</p>
+
+<p>The supervisors are: <br/>
+* the Connection Manager Supervisor <br/>
+* the Connection Supervisor and <br/>
+* the Profiler Supervisor.  </p>
+
+<p>The gen servers are: <br/>
+* the Connection Manager and <br/>
+* the Profiler Supervisor.  </p>
+
+<p>Each Connection Management Process is a temporary, supervised child that is not derived from an <em>OTP behavior</em> but does follow the requirements for an <em>OTP supervisor's</em> child.</p>
+
+<p>The optional workhorse per-call processeses are monitored, within the <code>erlvolt</code> module, by the calling user process. Alternatively, the user process can be executing the driver functions itself and thus skip one layer of indirection and protection.</p>
+
+<p>*The term <a href="http://www.erlang.org/doc/design_principles/applications.html">'application'</a> has special meaning in Erlang. Roughly, a package seen from the point of view of administration.</p>
+
+
+<h3>Sequence</h3>
+
+<p>The internal sequence of a call is as listed below, depending on the options described above. Because of the structure of an Erlang program, <code>asynchronous</code> execution of queries may double parallelism. Start thinking about the <code>synchronous</code> use case and tune your requirements from that base if needed. The atoms in brackets in the following are the respective call options.</p>
+
+<ol>
+    <li>user process optionally (<code>force</code>): retrieves the pool's list of connections</li>
+    <li>user process calls erlvolt:call_procedure() to initiate the transaction</li>
+    <li>user process optionally (<code>queue</code>, <code>drop</code>): applies for a virtual connection slot</li>
+    <li>user process is (<code>queue</code>): queued, or (<code>drop</code>): rejected when no slot is available</li>
+    <li>user process optionally (<code>monitored</code>): creates worker process, or (<code>direct</code>): not </li>
+    <li>user or worker process sends transaction to socket process, which sends it on </li>
+    <li>call_procedure() optionally (<code>asynchronous</code>: <code>fireandforget</code>, <code>blowout</code>): returns ok</li>
+    <li>socket process optionally (<code>synchronous</code>, <code>asynchronous</code>: <code>awaitsendack</code>): acks send</li>
+    <li>call_procedure() optionally (<code>asynchronous</code>: <code>awaitsendack</code>): returns ok</li>
+    <li>socket process receives answer from the server</li>
+    <li>socket process optionally (<code>synchronous</code>, <code>asynchronous</code>: <code>awaitsendack</code>): forwards it</li>
+    <li>socket process optionally (<code>asynchronous</code>: <code>fireandforget</code>, <code>blowout</code>): drops it</li>
+    <li>socket process forwards any errors except for (<code>asynchronous</code>: <code>blowout</code>)</li>
+    <li>user or worker process receive any server answers to their process mailbox</li>
+    <li>call_procedure() optionally (<code>synchronous</code>): returns the server response</li>
+</ol>
+
+
+<h2>History                                               <a name="History"></a></h2>
+
+<p><strong>For version history, see CHANGES.md</strong></p>
+
+<p>The Erlvolt driver is the result of the hunt for a better database for heavy duty online-game servers at [Eonblast][]. I had experienced first hand what a pain it could be to try to scale MySQL and found [VoltDB][] uniquely suited for the requirements of more complex game worlds. Better than any other database in fact.</p>
+
+<p>I had also looked for a better language than Java for programming servers, most of all, one that would be less dead-lock prone, and for that I chose Erlang. To be able to use them together, I started creating the Erlang driver for VoltDB.</p>
+
+<p>Work started in 2009 and I donated a first working version of the driver to VoltDB at their request. It was perfectly usable but out of the box only provided for synchronous connections. In 2012 VoltDB decided to sponsor the creation of a bigger and badder version. Now the real deal has arrived.</p>
+
+<p>It is pure Erlang, blazingly fast and fit for VoltDB 3. It incorporates almost all of the previous, robust driver version. To ensure reliable, consistently high throughput, I drew from my experience maintaining the Erlang MySQL driver, Emysql. The connection pooling and call queueing is modeled after the ones used in that reliable workhorse, which was originally created by <a href="https://github.com/JacobVorreuter" title="Jacob Vorreuter">Jacob Vorreuter</a> and <a href="https://github.com/ngerakines" title="Nick Gerakines">Nick Gerakines</a> at Electronic Arts. They enable the Erlang driver to absorb access peaks, and to distribute load across VoltDB server nodes. This could be particularly valuable since a VoltDB cluster can slow down quite a bit if you actually make it to use it at capacity.</p>
+
+
+
+<h2>License                                                  <a name=License></a></h2>
+
+<p>Copyright (c) 2009-2013
+Henning Diedrich <a href="&#x6d;&#97;&#x69;&#108;&#x74;&#111;&#x3a;h&#100;&#x32;&#48;&#x31;&#48;&#x40;&#101;&#x6f;n&#98;&#x6c;&#97;&#x73;&#116;&#x2e;&#99;&#x6f;&#109;">&#x68;&#100;&#x32;&#48;&#x31;&#48;&#x40;e&#111;&#x6e;&#98;&#x6c;&#97;&#x73;&#116;&#x2e;c&#111;&#x6d;</a>,
+Eonblast Corporation <a href="http://www.eonblast.com">http://www.eonblast.com</a>.</p>
+
+<p>Permission is  hereby  granted,  free of charge,  to any person
+obtaining  a copy of this software and associated documentation
+files  (the  "Software"),  to  deal  in  the  Software  without 
+restriction,  including  without limitation  the rights to use,
+copy, modify,  merge,  publish, distribute,  sublicense, and/or 
+sell  copies of the  Software,  and to permit  persons  to whom
+the  Software  is furnished to do so,  subject to the following 
+conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF  MERCHANTABILITY,  FITNESS  FOR  A  PARTICULAR  PURPOSE  AND
+NONINFRINGEMENT. IN  NO  EVENT  SHALL  THE AUTHORS OR COPYRIGHT
+HOLDERS  BE  LIABLE FOR  ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT,  TORT  OR OTHERWISE,  ARISING
+FROM,  OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.</p>
+
+
+
+</body></html>

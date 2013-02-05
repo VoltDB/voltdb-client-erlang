@@ -1,20 +1,20 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : erlvolt.erl                                               %%%
-%%% Version     : 0.3.0/beta                                                %%%
+%%% Version     : 0.3/beta                                                  %%%
 %%% Description : Main Erlang VoltDB driver module                          %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2012@eonblast.com>                         %%%
 %%% License     : MIT                                                       %%%
 %%% Created     : 13 Apr 2012                                               %%%
-%%% Changed     : 02 Feb 2013                                               %%%
+%%% Changed     : 04 Feb 2013                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   This driver is being contributed to VoltDB by Eonblast Corporation.   %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.3.0/alpha - Erlang VoltDB client API.                      %%%
+%%%    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2013 VoltDB, LLC http://www.voltdb.com            %%%
@@ -78,12 +78,12 @@
 
 -module(erlvolt).
 
--vsn("0.3.0/beta").
+-vsn("0.3/beta").
 -author("H. Diedrich <hd2012@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010-12 VoltDB, LLC - http://www.voltdb.com").
 
--define(VERSION, "0.3.0/beta").
+-define(VERSION, "0.3/beta").
 -define(LIBRARY, "Erlvolt").
 -define(EXPLAIN, "Erlang VoltDB driver").
 
@@ -95,24 +95,27 @@
 %%
 %% This module exports functions to:
 %% <li><b>start</b> and <b>stop</b> the driver (the 'application') and </li>
-%% <li><b>execute</b> queries, as stored procedures or 'ad-hoc'.</li>
+%% <li><b>execute</b> queries, as stored procedures, or 'ad-hoc'.</li>
 %%
-%% start(), stop(), modules() are one-line 'fascades':
+%% start(), stop(), modules() are pure one-line 'fascades':
 %% ```
 %%  start() -> application:start(erlvolt).
 %%  stop() -> application:stop(erlvolt).
 %%  modules() -> erlvolt_app:modules().
 %% '''
 %%
-%% The implementation of call_procedure() makes for the bulk of this source
+%% The implementation of `call_procedure()' with its various options (See
+%% README.md) makes for the bulk of this module.
 %%
 %% The pool-related functions execute brief operations using the primitive
 %% functions exported by `erlvolt_conn_mgr'.
 %%
-%% Result-related functions forward their tasks to
-%% functions exported by `erlvolt_wire`.
-%%'
-%% @end doc: hd 3 feb 13
+%% Result-related getter functions are also pure forwarders to the respective
+%% functions exported by `erlvolt_wire'. Note that many guards hit not
+%% before erlvolt_wire, to not double them and to keep the facade functions
+%% here type-agnostic.
+%%
+%% @end doc: /hd 4 feb 13
 
 -export([   start/0, stop/0,
             trace/1, trace/2,
@@ -122,8 +125,8 @@
             drain_pool/1, drain_pool/2,
             get_connections/1,
             modules/0,
-            call_procedure/2, call_procedure/3, call_procedure/4, call_procedure/8,
-            getOne/1,
+            call_procedure/2, call_procedure/3, call_procedure/4,
+            get_one/1,
             get_field/2,
             get_integer/2,
             get_integer/3,
@@ -166,7 +169,7 @@
 %% terminates, this is reported but no other applications are terminated.
 %%
 %% See [http://www.erlang.org/doc/design_principles/applications.html]
-%% @end doc: hd feb 11
+%% @end doc: /hd 4 feb 13
 %%
 %% @spec start() -> 'ok' | {'error', any()}
 start() ->
@@ -182,7 +185,7 @@ start() ->
 %% affected.
 %%
 %% See [http://www.erlang.org/doc/design_principles/applications.html]
-%% @end doc: hd feb 11
+%% @end doc: /hd 4 feb 13
 %%
 %% @spec stop() -> 'ok' | {'error',any()}
 stop() ->
@@ -202,7 +205,7 @@ stop() ->
 %%
 %% Simply a call to `erlvolt_app:modules()'.
 %% @private
-%% @end doc: hd 3 feb 13
+%% @end doc: /hd 4 feb 13
 %%
 %% @spec modules() -> list()
 modules() ->
@@ -213,24 +216,25 @@ modules() ->
 %%
 %% === Implementation ===
 %%
-%% Creates a pool record, opens n=Size connections and calls
+%% Creates a pool record, opens the connections and calls
 %% erlvolt_conn_mgr:add_pool() to make the pool known to the pool management.
 %% erlvolt_conn_mgr:add_pool() is translated into a blocking gen-server call.
-%% @end doc: hd feb 11
+%% @end doc: /hd 4 feb 13
 %%
 %% @spec add_pool(PoolId, Hosts) -> Result
-%%      PoolId = atom()
+%%      PoolId = any()
 %%      Hosts = [{string(),Port}]
 %%      Port = integer()
-%%      Result = {reply, {error, pool_already_exists}, state()} | {reply, ok, state() }
+%%      Result = {error, pool_already_exists} | ok
 add_pool(PoolId, Hosts) ->
     add_pool(PoolId, Hosts, []).
 
 %% @spec add_pool(PoolId, Hosts, Opts) -> Result
-%%      PoolId = atom()
+%%      PoolId = any()
 %%      Hosts = [{string(),Port}]
 %%      Port = integer()
-%%      Result = {reply, {error, pool_already_exists}, state()} | {reply, ok, state() }
+%%      Result = {error, pool_already_exists} | ok
+%%      Opts = proplist()
 add_pool(PoolId, Hosts, Opts) ->
     ?TRACE("#4   erlvolt:add_pool/8"),
     Pool = #pool{
@@ -246,7 +250,7 @@ add_pool(PoolId, Hosts, Opts) ->
         receive_buffer = proplists:get_value(receive_buffer, Opts, 100000),
         send_timeout = proplists:get_value(send_timeout, Opts, 10000)
     },
-    % TODO: should this happen inside the gen server, in add_pool/1?
+    % 
     Blocking = case proplists:get_value(blocking, Opts, true) of true -> blocking; _ -> nonblocking end,
     case erlvolt_conn:open_connections(Pool, Blocking) of
         OpenedPool when is_record(OpenedPool, pool) ->
@@ -259,91 +263,138 @@ add_pool(PoolId, Hosts, Opts) ->
                     exit({What,Why});
                 What:Why ->
                     erlvolt:error("Could not add pool to connection manager state: ~p.~n~p.", [What,Why], notrace),
-                    % TODO close successfully opened connections?
+                    % 
                     exit({What,Why})
             end;
         Error ->
             erlvolt:error("Could not create connection pool:~n~p.", [Error], notrace),
-            % TODO close successfully opened connections?
+            % 
             throw({connection_failed, Error})
     end.
 
 
-%% @doc Synchronous call to the connection manager to drain a pool.
+%% @doc Synchronous command to connection manager to drain a pool.
+%% The connection process of every connection in the pool is monitored for
+%% having more than 500 msec continuous idle time, whereafter it is considered
+%% drained. The idle wait is also restarted by sends.
 %%
-%% @end doc: hd jan 13
-%% @spec drain_pool(PoolId) -> ok
-%%      PoolId = atom()
+%% This function blocks. It can block forever if sending and receiving does not
+%% stop. It returns a list of atoms `drained', one for each connection.
+%%
+%% This function is not leading to a close. It needs not be called before close_pool(),
+%% which drains the connections implicitly before closing.
+%% @end doc: /hd 4 feb 13
+%% @spec drain_pool(PoolId) -> [ drained, ... ] | {error, pool_not_found}
+%%      PoolId = any()
 drain_pool(PoolId) ->
     drain_pool(PoolId, 500).
 
-%% @spec close_pool(PoolId, DrainWait, CloseWait) -> ok
+%% @doc Synchronous command to connection manager to drain a pool.
+%% @see drain_pool/1
+%% @end doc: /hd 4 feb 13
+%% @spec drain_pool(PoolId, DrainWait) -> [ drained, ... ] | {error, pool_not_found}
 %%      PoolId = atom()
 %%      DrainWait = integer()
-%%      CloseWait = integer()
 drain_pool(PoolId, DrainWait) ->
     erlvolt_conn_mgr:drain_pool(PoolId, DrainWait).
 
-%% @doc Synchronous call to the connection manager to remove a pool.
+%% @doc Synchronous command to connection manager to close a pool.
+%% The connection process of every connection in the pool is 'drained': i.e.
+%% monitored for having more than 500 msec continuous idle time, whereafter it is
+%% considered drained. The idle wait is also restarted by sends.
 %%
-%% === Implementation ===
+%% This function blocks. It can block up to 1000 msec if sending and receiving
+%% does not stop, i.e. the connections cannot be drained.
 %%
-%% Relies on erlvolt_conn:close_connection(Conn) for the proper closing of connections. Feeds
-%% any connection in the pool to it.
-%% @end doc: hd 3 feb 13
-%% @spec close_pool(PoolId) -> ok
-%%      PoolId = atom()
+%% On success, the function returns a list of atoms `closed', one for each connection.
+%% @end doc: /hd 4 feb 13
+%% @spec close_pool(PoolId) -> [ closed, ... ] | connection_close_timeout | {error, pool_not_found}
+%%      PoolId = any()
 close_pool(PoolId) ->
     close_pool(PoolId, 500, 1000).
 
-%% @spec close_pool(PoolId, DrainWait, CloseWait) -> ok
+%% @doc Synchronous command to connection manager to close a pool.
+%% @see close_pool/1
+%% @end doc: /hd 4 feb 13
+%% @spec close_pool(PoolId, DrainWait, CloseWait) -> [ closed, ... ] | connection_close_timeout | {error, pool_not_found}
 %%      PoolId = atom()
 %%      DrainWait = integer()
 %%      CloseWait = integer()
 close_pool(PoolId, DrainWait, CloseWait) ->
     erlvolt_conn_mgr:close_pool(PoolId, DrainWait, CloseWait).
 
-
 %% @doc Execute a stored procedure or ad-hoc query.
-%%
 %% Same as `call_procedure(PoolId, ProcName, [], [])'.
-%%
-%% @end doc: hd 3 feb 13
-%%
-%% @spec call_procedure(PoolId, Query|ProcName) -> Result | [Result]
+%% @see call_procedure/4
+%% @end doc: /hd 4 feb 13
+%% @spec call(PoolId | ConnRobin, ProcName) -> result() | asynch_ok() | call_error()
 %%      PoolId = atom()
+%%      ConnRobin = {[ erlvolt_connection() ], Round::integer()}
 %%      ProcName = atom()
-%%      Result = ok_packet() | result_packet() | error_packet()
-%%
 call_procedure(PoolId, ProcName) ->
     call_procedure(PoolId, ProcName, [], []).
 
 %% @doc Execute a stored procedure or ad-hoc query.
+%% Same as `call_procedure(PoolId, ProcName, Args, [])'.
+%% @see call_procedure/4
+%% @end doc: /hd 4 feb 13
 %%
-%% @end doc: hd 3 feb 13
-%%
-%% @spec call_procedure(PoolId, Query|ProcName, Args|Timeout) -> Result | [Result]
+%% @spec call(PoolId | ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts) -> result() | asynch_ok() | call_error()
 %%      PoolId = atom()
-%%      Query = binary() | string()
+%%      ConnRobin = {[ erlvolt_connection() ], Round::integer()}
 %%      ProcName = atom()
 %%      Args = [any()]
-%%      Timeout = non_neg_integer()
-%%      Result = ok_packet() | result_packet() | error_packet()
+%%      Query = binary() | string()
 %%
 call_procedure(PoolId, ProcName, Args) when is_list(Args) ->
     call_procedure(PoolId, ProcName, Args, []).
 
 %% @doc Execute a stored procedure or ad-hoc query.
+%% The first parameter is either a pool id or a 'connection round robin' tuple received
+%% from get_connection_list/1. The second parameter is the procedure name, are the
+%% string "@AdHoc". The third are arguments to the procedure, or a query string, for
+%% ad-hoc execution (that is VoltDB parlance for a normal query that is not a stored
+%% procedure and that can be magnitudes slower). The fourth are options:
+%% force | queue | drop: determine whether the call management's peak buffer,
+%% a call `queue` is used or not; the call management can also be used without
+%% the queue and set to `drop` calls that can't be executed immediately; or the
+%% call management can be circumvented using `force`, in which case a strict
+%% round robin is applied for choosing the cluster node to send a call to.
+%% monitored | direct: a call can be executed through a `monitored`,
+%% specially spawned workhorse process, which shields the user process from
+%% problems in the driver; or it can be executed in `direct` fashion were the
+%% internal driver functions are executed by the user process itself.
+%% synchronous | asynchronous: with `synchronous` execution,
+%% `call_procedure()` blocks until it receives the answer from the server and
+%% returns the actual result; with `asynchronous` execution, the call returns
+%% immediately and the result is sent to the calling processes' message box.
+%% awaitsendack | fireandforget | blowout: For fine tuning, the
+%% acknowledgement level can be used to make call execution 'one-way'. These
+%% options only apply to  `asynchronous` execution. The setting of
+%% `awaitsendack` means that call_procedure() returns after it got the ok from
+%% the socket that the call was successfully sent. This is meaningful, and can
+%% cause a long wait, because of **backpressure**: a VoltDB cluster can stop
+%% reading from the socket temporarily in a sign that it is at capacity. A less
+%% thorough setting is `fireandforget`, which will return immediately from the
+%% send and will have any problems from the socket sent to the user processes'
+%% mailbox, just as any error coming from the server, But all non-error results
+%% coming from the server are silently dropped. Finally, `blowout` suppresses
+%% any feedback, be it from the sending itself or any responses or errors from
+%% the server.
+%% The default setting is `[queue, monitored, synchronous]'.
 %%
-%% @end doc: hd jan 13
-
-%% @spec call(PoolId, Query|ProcName, Args, Opts) -> Result | [Result]
-%%      PoolId = atom()
-%%      Query = binary() | string()
+%% === Implementation ===
+%%
+%% This is a wrapping function that mainly determines what variant of
+%% call_procedure/8 to call, depending on the combination of options turned in.
+%%
+%% @end doc: /hd 4 feb 13
+%% @spec call(PoolId | ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts) -> result() | asynch_ok() | call_error()
+%%      PoolId = any()
+%%      ConnRobin = {[ erlvolt_connection() ], Round::integer()}
 %%      ProcName = binary() | string()
 %%      Args = [any()]
-%%      Timeout = non_neg_integer()
-%%      Result = ok_packet() | result_packet() | error_packet()
+%%      Query = binary() | string()
 %%
 call_procedure(Link, ProcName, Param, Opts) when is_list(Param) andalso is_list(Opts) ->
 
@@ -374,6 +425,23 @@ call_procedure(Link, ProcName, Param, Opts) when is_list(Param) andalso is_list(
     %% switch to respective execution path
     call_procedure(Link, ProcName, Param, Opts, Manage, Monitored, Synch, Care).
 
+%*****************************************************************************%
+%                          Internal Call Functions                            %
+%*****************************************************************************%
+
+%% @doc Call a procedure, using connection copies round robin, bypassing the
+%% connection manager, using a worker process inside the driver.
+%% The call can be synchronous or asynchronous. I.e. the call can return
+%% a result, or an error, or the result will come to the mailbox of calling process.
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure(ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts, force, monitored, Sync, Care) -> result() | asynch_ok() | call_error()
+%%      ConnRobin = {[ erlvolt_connection() ], Round::integer()}
+%%      ProcName = binary() | string()
+%%      Args = [any()]
+%%      Query = binary() | string()
+%%      Opts = proplist()
+%%      Sync = synchronous | asynchronous
+%%      Care = awaitsendack | fireandforget | blowout
 call_procedure({ConnList, Round}, ProcName, Param, Opts, force, monitored, Sync, Care) when is_list(ConnList), is_list(Param), is_list(Opts) ->
     ?TRACE("#10A  erlvolt:call on conn list, round ~p, force, monitored, ~p", [Round, Sync]),
     ?TRACE("call: ~w w/~w opts ~w",[ProcName, Param, Opts]),
@@ -384,6 +452,16 @@ call_procedure({ConnList, Round}, ProcName, Param, Opts, force, monitored, Sync,
     ReceiveTimeout = proplists:get_value(send_timeout, Opts, 10000),
     call_procedure_monitored(Slot, ProcName, Param, Sync, Care, SendTimeout, ReceiveTimeout);
 
+%% @doc Call a procedure, using connection copies round robin, bypassing the
+%% connection manager, NOT using a worker process inside the driver but the
+%% original, calling user microprocess. Blocks and returns the call's result, or an error.
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure(ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts, force, direct, synchronous, _) -> result() | call_error()
+%%      ConnRobin = {[ erlvolt_connection() ], Round::integer()}
+%%      ProcName = binary() | string()
+%%      Args = [any()]
+%%      Query = binary() | string()
+%%      Opts = proplist()
 call_procedure({ConnList, Round}, ProcName, Param, Opts, force, direct, synchronous, _) when is_list(ConnList), is_list(Param), is_list(Opts) ->
     ?TRACE("#10B  erlvolt:call on conn list, round ~p, force, direct, synchronous", [Round]),
     N = Round rem length(ConnList) + 1,
@@ -393,6 +471,17 @@ call_procedure({ConnList, Round}, ProcName, Param, Opts, force, direct, synchron
     ReceiveTimeout = proplists:get_value(send_timeout, Opts, 10000),
     erlvolt_conn:execute(Slot, ProcName, Param, synchronous, SendTimeout, ReceiveTimeout, self());
 
+%% @doc Call a procedure, using connection copies round robin, bypassing the
+%% connection manager, NOT using a worker process inside the driver but the
+%% original, calling user microprocess. Returns when call is sent to socket.
+%% Result will come to mailbox of calling process.
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure(ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts, force, direct, asynchronous, _) -> asynch_ok() | call_error()
+%%      ConnRobin = {[ erlvolt_connection() ], Round::integer()}
+%%      ProcName = binary() | string()
+%%      Args = [any()]
+%%      Query = binary() | string()
+%%      Opts = proplist()
 call_procedure({ConnList, Round}, ProcName, Param, Opts, force, direct, asynchronous, Care) when is_list(ConnList), is_list(Param), is_list(Opts) ->
     ?TRACE("#10C erlvolt:call on conn list, round ~p, force, direct, asynchronous", [Round]),
     ?TRACE("call: ~w w/~w opts ~w",[ProcName, Param, Opts]),
@@ -402,6 +491,20 @@ call_procedure({ConnList, Round}, ProcName, Param, Opts, force, direct, asynchro
     SendTimeout = proplists:get_value(send_timeout, Opts, 10000),
     erlvolt_conn:execute(Slot, ProcName, Param, asynchronous, SendTimeout, Care, self());
 
+%% @doc Call a procedure, using a pool and the connection manager;
+%% *queueing* the call when no slot is immediately available; and using a worker
+%% process inside the driver.
+%% The call can be synchronous or asynchronous. I.e. the call can return
+%% a result, or an error, or the result will come to the mailbox of calling process.
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure(ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts, queue, monitored, Sync, Care) -> result() | asynch_ok() | call_error()
+%%      PoolId = any()
+%%      ProcName = binary() | string()
+%%      Args = [any()]
+%%      Query = binary() | string()
+%%      Opts = proplist()
+%%      Sync = synchronous | asynchronous
+%%      Care = awaitsendack | fireandforget | blowout
 call_procedure(PoolId, ProcName, Param, Opts, queue, monitored, Sync, Care) when is_list(Param) ->
     ?TRACE("#10D erlvolt:call on pool id, queue, monitored, ~p", [Sync]),
     ?TRACE("call: ~w w/~w opts ~w",[ProcName, Param, Opts]),
@@ -418,6 +521,20 @@ call_procedure(PoolId, ProcName, Param, Opts, queue, monitored, Sync, Care) when
             throw(Fail)
     end;
 
+%% @doc Call a procedure, using a pool and the connection manager;
+%% *rejecting* the call when no slot is immediately available; and using a worker
+%% process inside the driver when it is.
+%% The call can be synchronous or asynchronous. I.e. the call can return
+%% a result, or an error, or the result will come to the mailbox of calling process.
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure(ConnRobin, ProcName | "@AdHoc", Args | [Query], Opts, drop, monitored, Sync, Care) -> result() | asynch_ok() | call_error()
+%%      PoolId = any()
+%%      ProcName = binary() | string()
+%%      Args = [any()]
+%%      Query = binary() | string()
+%%      Opts = proplist()
+%%      Sync = synchronous | asynchronous
+%%      Care = awaitsendack | fireandforget | blowout
 call_procedure(PoolId, ProcName, Param, Opts, drop, monitored, Sync, Care) when is_list(Param) ->
     ?TRACE("#10E erlvolt:call on pool id, drop, monitored, ~p", [Sync]),
     ?TRACE("call: ~w w/~w opts ~w",[ProcName, Param, Opts]),
@@ -434,35 +551,44 @@ call_procedure(PoolId, ProcName, Param, Opts, drop, monitored, Sync, Care) when 
             Fail
     end;
 
-call_procedure(PoolId, ProcName, Param, Opts, Manage, Monitor, Synch, Care) ->
+%% @doc Call a procedure with wrong combinations of options. Get an error.
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure(Link, ProcName, Args | [Query], Opts, Manage, Monitor, Sync, Care) -> bad_options
+%%      Link = any()
+%%      ProcName = any()
+%%      Args = any()
+%%      Query = any()
+%%      Opts = any()
+%%      Manage = any()
+%%      Monitor = any()
+%%      Sync = any()
+%%      Care = any()
+call_procedure(Link, ProcName, Param, Opts, Manage, Monitor, Synch, Care) ->
     erlvolt:error("call_procedure: bad options combination: ~p, ~p, ~p, ~p, ~p <- ~p, ~p, ~p.",
-         [PoolId, ProcName, Param, Opts, Manage, Monitor, Synch, Care]).
+         [Link, ProcName, Param, Opts, Manage, Monitor, Synch, Care]),
+    bad_options.
 
-%%--------------------------------------------------------------------
-%%% Internal functions
-%%--------------------------------------------------------------------
-%% @doc Execute a stored procedure or ad-hoc query.
+%% @doc Execute a stored procedure or ad-hoc query by means of a worker process
+%% that executes functions within the driver beyond this point. This shields
+%% the calling user process from problems in the driver.
 %%
-%% Same as `call_procedure(PoolId, Query, Args, default_timeout())'
-%% or `call_procedure(PoolId, Query, [], Timeout)'.
+%% call_procedure_monitored is oblivious to the fact wether the send call is blocking
+%% or not. This function is called by the original user process. It spawns a 'membrane'
+%% worker fun that does nothing but call erlvolt_conn_execute/6 or /7 and send the
+%% results from that back to the original process that is waiting for the answer
+%% all in this function.
 %%
 %% @private
-%% @end doc: hd may 12
-%%
-%% call_procedure_monitored is oblivious to the fact wether the send call is blocking or not.
-%% This function is called by the original user process. It spawns a membrane
-%% worker fun that does nothing but call erlvolt_call_procedure/3 and send the
-%% result of that back to th original process that is waiting for the answer
-%% in this function. The answer comes in as soon as the sending succeeded,
-%% not waiting for the Volt server's response.
-%%
-%% @spec call_procedure_monitored(Slot, Proc, Param, Timeout) -> Result | exit()
+%% @end doc: /hd 4 feb 13
+%% @spec call_procedure_monitored(Slot, ProcName | "@AdHoc", Args | [Query], Sync, Care, SendTimeout, ReceiveTimeout) -> result() | asynch_ok() | call_error() | exit()
 %%      Slot = #erlvolt_slot{}
-%%      Proc = binary() | string()
-%%      Param = [any()]
-%%      Timeout = non_neg_integer()
-%%      Result = ok_packet() | result_packet() | error_packet()
-%%
+%%      ProcName = binary() | string()
+%%      Args = [any()]
+%%      Query = binary() | string()
+%%      Sync = synchronous | asynchronous
+%%      Care = awaitsendack | fireandforget | blowout
+%%      SentTimeout = integer() | infinity
+%%      ReceiveTimeout = integer() | infinity
 call_procedure_monitored(Slot, Proc, Param, Sync, Care, SendTimeout, ReceiveTimeout) when is_record(Slot, erlvolt_slot) ->
 
     ?TRACE("#12  erlvolt:call_procedure_monitored/3"),
@@ -501,13 +627,13 @@ call_procedure_monitored(Slot, Proc, Param, Sync, Care, SendTimeout, ReceiveTime
     %% those are two steps. the response from the server
     %% is expected within milliseconds usually.
     Return = receive
-        {'DOWN', Mref, process, WPid, {_, closed}} -> % TODO
+        {'DOWN', Mref, process, WPid, {_, closed}} -> % 
             exit(not_implemented_1);
 
         {'DOWN', Mref, process, WPid, normal} ->
             ?TRACE("#20 call_procedure_monitored: DOWN normal -> exit~n", []);
 
-        {'DOWN', Mref, process, WPid, _Reason} -> % TODO
+        {'DOWN', Mref, process, WPid, _Reason} -> % 
             ?TRACE("call_procedure_monitored: DOWN ~p -> exit~n", [_Reason]),
             exit({not_implemented_1B,_Reason});
 
@@ -536,7 +662,7 @@ call_procedure_monitored(Slot, Proc, Param, Sync, Care, SendTimeout, ReceiveTime
             ?TRACE("call_procedure_monitored: got result -> demonitor ~w, unlock connection ~w slot ~w, return result", [Mref, Slot#erlvolt_slot.connection_id, Slot#erlvolt_slot.id]),
             erlang:demonitor(Mref, [flush]),
             erlvolt_conn_mgr:pass_slot(Slot),
-            %-% io:format("Result: ~p~n", [Result]),
+            
             Result
 
         after ReceiveTimeout ->
@@ -563,15 +689,22 @@ get_connections(PoolID) ->
     erlvolt_conn_mgr:get_connections(PoolID).
 
 
+%*****************************************************************************%
+%                              Debug Functions                                %
+%*****************************************************************************%
 
 %%--------------------------------------------------------------------
-%%% Debug functions
-%%--------------------------------------------------------------------
+%% @doc trace to screen, special made for max readability of internal sequence
+%% during driver initialization and a procedure call.
 %% @spec trace(any()) -> 'void' | ok
 trace(_S) ->
     ?TRACE(_S, []).
 
 %% @spec trace([any()],[any()]) -> 'ok'
+%%--------------------------------------------------------------------
+%% @doc trace to screen, special made for max readability of internal sequence
+%% during driver initialization and a procedure call.
+%% @spec trace(any()) -> 'void' | ok
 trace([$#|_]=F,A) ->
     io:format("*** ~.10w | " ++ F ++ " ~n", [self() | A]);
 
@@ -582,17 +715,21 @@ trace([C|_]=F,A) when C == $I; C == $V ->
 trace(F,A) ->
     io:format("*** ~.10w |       " ++ F ++ " ~n", [self() | A]).
 
+%%--------------------------------------------------------------------
+%% @doc extra visible error dump
 %% @spec error(list()) -> 'ok'
 error(S) ->
 
     erlvolt:error(S, [], trace).
 
+%% @doc extra visible error dump, with strack trace
 %% @spec error(list(), list(any())) -> 'ok'
 error(F,A) ->
 
     error(F,A, trace).
 
-%% @spec error(list(), list(any())) -> 'ok'
+%% @doc extra visible error dump, with or w/o stack trace
+%% @spec error(list(), list(any()), trace | notrace) -> 'ok'
 error(F,A, Trace) ->
     F1 = re:replace(F,"~n","~n###                           ",[global,{return,list}]),
     case Trace of
@@ -611,17 +748,27 @@ error(F,A, Trace) ->
     end.
 
 
-%% Get the single number expected as return out of the Volt table format.
-getOne({result, { voltresponse, _, [ Table | _ ] }}) ->
+
+%*****************************************************************************%
+%                          Result Access Functions                            %
+%*****************************************************************************%
+
+%%%----------------------------------------------------------------------------
+%%% @doc Get the single value expected as return out of the Volt table format.
+%% @spec get_one(voltresponse() | {result, voltresponse()}) -> any()
+get_one({result, { voltresponse, _, _ } = R}) ->
+
+    get_one(R);
+
+get_one({ voltresponse, _, [ Table | _ ] }) ->
 
     {voltrow, [One]} = erlvolt_wire:get_row(Table, 1),
     One.
 
 %*****************************************************************************%
-%                          Result Access Functions                            %
-%*****************************************************************************%
-%% These are all pure facades. The guards are implemented with knowledge of the
-%% used structures in the implementing module erlvolt_wire.
+%% These are all pure facades. The guards are implemented 'further down' with %
+%%  knowledge of the structures used in the implementing module erlvolt_wire. %
+%%%-------------------------------------------------------------------------%%%
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get the status number from the result.

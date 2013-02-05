@@ -1,0 +1,8 @@
+LANG=C sed -E -i "" -e "s/$1/$2/g"  include/*.hrl
+LANG=C sed -E -i "" -e "s/$1/$2/g"  src/*.erl
+LANG=C sed -E -i "" -e "s/$1/$2/g"  src/*.src
+LANG=C sed -E -i "" -e "s/$1/$2/g"  examples/*.erl
+LANG=C sed -E -i "" -e "s/$1/$2/g"  etc/test/*.erl
+LANG=C sed -E -i "" -e "s/$1/$2/g"  etc/bench/*.erl
+LANG=C sed -E -i "" -e "s/$1/$2/g"  *.md
+LANG=C sed -E -i "" -e "s/$1/$2/g"  doc/*.md

@@ -1,6 +1,6 @@
 %%%-------------------------------------------------------------------------%%%
 %%% File        : etc/bench/bench.erl                                       %%%
-%%% Version     : 0.3.0/beta                                                %%%
+%%% Version     : 0.3/beta                                                  %%%
 %%% Description : Erlang VoltDB driver 'Hello' and 'Voter' benchmark        %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
@@ -14,7 +14,7 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
-%%%    Erlvolt 0.3.0/alpha - Erlang VoltDB client API.                      %%%
+%%%    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      %%%
 %%%                                                                         %%%
 %%%    This file is part of VoltDB.                                         %%%
 %%%    Copyright (C) 2008-2013 VoltDB, LLC http://www.voltdb.com            %%%
@@ -562,7 +562,7 @@ wait_done(C) ->
 
 -ifdef(profile).
 drain(CallTarget) ->
-    receipts(CallTarget,0,0). %%% TODO: WAITPENDING, WAITQUEUED instead? Performance hit?
+    receipts(CallTarget,0,0). %%% 
 -else.
 drain(CallTarget) ->
     receipts(CallTarget,0,0).
@@ -762,7 +762,7 @@ call_voter(Parent, Calls, Link, Mode, Verbosity) ->
     end,
 
     R = (catch erlvolt:call_procedure(Link, "Vote", [Phone, Candidate, 20000], Opts)),
-    % trace(3, Verbosity, "Return: ~p~n", [voter_return_text(erlvolt:getOne(R))]),
+    % trace(3, Verbosity, "Return: ~p~n", [voter_return_text(erlvolt:get_one(R))]),
     react_to_response(R, Verbosity),
 
     call_voter(Parent, Calls-1, Link, Mode, Verbosity).
