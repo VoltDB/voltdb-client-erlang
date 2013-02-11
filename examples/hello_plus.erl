@@ -7,7 +7,7 @@
 %%% Author      : H. Diedrich <hd2012@eonblast.com>                         %%%
 %%% License     : MIT                                                       %%%
 %%% Created     : 28 Jan 2013                                               %%%
-%%% Changed     : 02 Feb 2013                                               %%%
+%%% Changed     : 05 Feb 2013                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   This driver is being contributed to VoltDB by Eonblast Corporation.   %%%
@@ -80,7 +80,7 @@
 
 -module(hello_plus).
 -export([run/0]).
--import(erlvolt).
+
 -include("erlvolt.hrl").
 
 run() ->
@@ -110,8 +110,47 @@ run() ->
         %%% Load sample data into the database
         %%%
 
-        erlvolt:call_procedure(hello_pool, "Insert", ["Hello",  "World", "English"]),
-        erlvolt:call_procedure(hello_pool, "Insert", ["Hej", "världen", "Swedish"]),
+        % Find out if we are Volt pre-3.0 or not (changed order in hello sample)
+        erlvolt:call_procedure(hello_pool, "@AdHoc", ["DELETE FROM helloworld"]),
+        timer:sleep(200),
+        erlvolt:call_procedure(hello_pool, "Insert", ["1", "2", "3"]),
+        timer:sleep(200),
+        VoltVersion = case erlvolt:call_procedure(hello_pool, "Select", ["1"]) of
+            ?VOLT_EMPTY_RESPONSE ->
+                'pre-3';
+            _ ->
+                '3+'
+        end,
+
+        % insert for Volt 3+ or earlier, respectively
+        % this is not due to a Volt change, but only a change of the example
+        R = case VoltVersion of
+            'pre-3' ->
+                erlvolt:call_procedure(hello_pool, "Insert", ["Hello", "World", "English"]);
+            '3+' ->
+                erlvolt:call_procedure(hello_pool, "Insert", ["English", "Hello", "World"])
+        end,
+
+        case erlvolt:get_status(R) of
+            ?VOLT_SUCCESS -> ok;
+            ?VOLT_GRACEFUL_FAILURE -> ok; % UNIQUE violation = database not restarted
+             _ -> io:format("### Insert failed: ~p~n", [R])
+        end,
+
+        % insert for Volt 3+ or earlier, respectively
+        % this is not due to a Volt change, but only a change of the example
+        R1 = case VoltVersion of
+            'pre-3' ->
+                erlvolt:call_procedure(hello_pool, "Insert", ["Hej", "världen", "Swedish"]);
+            '3+' ->
+                erlvolt:call_procedure(hello_pool, "Insert", ["Swedish", "Hej", "världen"])
+        end,
+
+        case erlvolt:get_status(R1) of
+            ?VOLT_SUCCESS -> ok;
+            ?VOLT_GRACEFUL_FAILURE -> ok; % UNIQUE violation = database not restarted
+             _ -> io:format("### Insert failed: ~p~n", [R1])
+        end,
 
         %%%
         %%% Synchronous Query
@@ -150,7 +189,11 @@ run() ->
             %%     }.
             %% @end
 
-            ?ERLVOLT_ERROR_MESSAGE("Procedure Select was not found") ->
+            ?VOLT_EMPTY_RESPONSE ->
+
+                io:format("~nI can't say Hello in this language!~n");
+
+            ?VOLT_ERROR_MESSAGE("Procedure Select was not found") ->
 
                 io:format("~nRunning the right database? (cd voltdb/doc/tutorials/hello && ./run.sh)~n~n");
 

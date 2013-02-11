@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------------%%%
-%%% File        : examples/hello.erl                                        %%%
+%%% File        : examples/parallel.erl                                     %%%
 %%% Version     : 0.3/beta                                                  %%%
-%%% Description : Erlang VoltDB driver minimal 'Hello, world!' example file %%%
+%%% Description : Erlang VoltDB driver parallel 'Hello, world!' example     %%%
 %%% Copyright   : VoltDB, LLC - http://www.voltdb.com                       %%%
 %%% Production  : Eonblast Corporation - http://www.eonblast.com            %%%
 %%% Author      : H. Diedrich <hd2012@eonblast.com>                         %%%
 %%% License     : MIT                                                       %%%
-%%% Created     : 28 Apr 2012                                               %%%
-%%% Changed     : 02 Feb 2013                                               %%%
+%%% Created     : 28 Jan 2013                                               %%%
+%%% Changed     : 06 Feb 2013                                               %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
 %%%   This driver is being contributed to VoltDB by Eonblast Corporation.   %%%
@@ -53,18 +53,38 @@
 %%%                                                                         %%%
 %%% Then run this hello world example, using make from the driver root:     %%%
 %%%                                                                         %%%
-%%%     $ make hello-barebones # note the 'barebones'                       %%%
+%%%     $ make parallel-pre3                                                %%%
 %%% or                                                                      %%%
 %%%     $ make                                                              %%%
 %%%     $ cd examples                                                       %%%
-%%%     $ erlc -I ../include -o ../ebin +debug_info hello.erl               %%%
-%%%     $ erl -pa ../ebin -s hello run -s init stop -noshell                %%%
+%%%     $ erlc -I ../include -o ../ebin +debug_info parallel_pre3.erl       %%%
+%%%     $ erl -pa ../ebin -s parallel_pre3 run -s init stop -noshell        %%%
 %%%                                                                         %%%
-%%% You will see this response, 'Hello, world!' in Swedish:                 %%%
+%%% You will see this response, 'Hello, world!' in a couple of languages:   %%%
 %%%                                                                         %%%
-%%%     Hej världen!                                                        %%%
+%%%     Hello Sample                                                        %%%
+%%%     ----------------------------------------------------------------    %%%
+%%%     I.   start                                                          %%%
+%%%     III. insert samples                                                 %%%
+%%%     IV.  select                                                         %%%
+%%%     V.   receive                                                        %%%
+%%%     ----------------------------------------------------------------    %%%
+%%%     .... Hello World!                                                   %%%
+%%%     .... Hej världen!                                                   %%%
+%%%     .... Hola mundo!                                                    %%%
+%%%     .... Hallo Welt!                                                    %%%
+%%%     .... Hello wereld!                                                  %%%
+%%%     .... Salut tout le monde!                                           %%%
+%%%     .... Ciao mondo!                                                    %%%
+%%%     .... Go' vIvan!                                                     %%%
+%%%     .... Aiya arda!                                                     %%%
+%%%     .... :-) (+)!                                                       %%%
+%%%     ----------------------------------------------------------------    %%%
+%%%     VI.  close pool                                                     %%%
 %%%                                                                         %%%
-%%% For a slightly more comples example see examples/hello_plus.erl.        %%%
+%%%-------------------------------------------------------------------------%%%
+%%%                                                                         %%%
+%%%       For a barebones 'hello world' see examples/hello.erl.             %%%
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 %%%                                                                         %%%
@@ -76,12 +96,10 @@
 %%%                                                                         %%%
 %%%-------------------------------------------------------------------------%%%
 
--module(hello).
+-module(parallel_pre3).
 -export([run/0]).
 
 -include("erlvolt.hrl").
-
--author("H. Diedrich <hd2010@eonblast.com>").
 
 run() ->
 
@@ -89,42 +107,71 @@ run() ->
     %%% Start driver
     %%%
 
+    io:format("~n~nParallel Sample pre VoltDB 3.0 (Different Hello World Sample Table)~n"),
+    io:format("-----------------------------------------------------------------------~n"),
+
+    io:format("I.   start~n"),
     crypto:start(),
     application:start(erlvolt),
 
     %%%
-    %%% Connect
+    %%% Connect to the database
     %%%
 
-    erlvolt:add_pool(hello_pool, [{"localhost", 21212}]),
+    erlvolt:add_pool(hello_pool, [{"localhost", 21212}], []),
 
     %%%
     %%% Load sample data into the database
     %%%
 
-    erlvolt:call_procedure(hello_pool, "Insert", ["Swedish", "Hej", "världen"]),
+    io:format("III. insert samples~n"),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Hello", "World", "English"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Hej", "världen", "Swedish"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Hola", "mundo", "Spanish"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Hallo", "Welt", "German"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Hello", "wereld", "Dutch"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Salut", "tout le monde", "French"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Ciao", "mondo", "Italian"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Go'", "vIvan", "Klingon"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Aiya", "arda", "Quenya"]),
+    erlvolt:call_procedure(hello_pool, "Insert", [":-)", "(+)", "Smiley"]),
 
     %%%
-    %%% Query
+    %%% Asynchronous Query
     %%%
 
-    Result = erlvolt:call_procedure(hello_pool, "Select", ["Swedish"]),
-    %% note: the stored procedure is called 'Select'.
+    Languages = ["English","Swedish","Spanish","German","Dutch","French","Italian","Klingon","Quenya","Smiley"],
+
+    io:format("IV.  select~n"),
+
+    [ ok = erlvolt:call_procedure(hello_pool, "Select", [Language], [asynchronous])
+    || Language <- Languages ],
+
 
     %%%
-    %%% Result
+    %%% Results
     %%%
 
-    Table = erlvolt:get_table(Result, 1),
-    Row = erlvolt:get_row(Table, 1),
-    Hello = erlvolt:get_string(Row, Table, "HELLO"),
-    World = erlvolt:get_string(Row, Table, "WORLD"),
+    io:format("V.   receive~n"),
+    io:format("-----------------------------------------------------------------------~n"),
 
-    io:format("~n~s ~s!~n~n", [Hello, World]),
+    [ receive
+        ?VOLT_ERROR_MESSAGE("Procedure Select was not found") ->
+            io:format("~nRunning the right database? (cd voltdb/doc/tutorials/hello && ./run.sh)~n~n");
+
+        Result ->
+            Table = erlvolt:get_table(Result, 1),
+            Row = erlvolt:get_row(Table, 1),
+            Hello = erlvolt:get_string(Row, Table, "HELLO"),
+            World = erlvolt:get_string(Row, Table, "WORLD"),
+            io:format(".... ~s ~s!~n", [Hello, World])
+      end
+    || _ <- Languages ],
+    io:format("-----------------------------------------------------------------------~n"),
 
     %%%
-    %%% Close
+    %%% Close database connection
     %%%
 
+    io:format("VI.  close pool~n"),
     erlvolt:close_pool(hello_pool).
-

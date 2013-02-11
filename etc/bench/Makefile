@@ -3,6 +3,7 @@ EBIN_DIR := ../../ebin
 include ../../etc/include.mk
 
 all: $(EBIN_DIR)/bench.beam
+	@:
 
 %.beam: %.erl
 	$(ERLC) $(ERLC_FLAGS) -o $(EBIN_DIR) $<

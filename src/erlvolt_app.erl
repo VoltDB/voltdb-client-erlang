@@ -90,7 +90,8 @@
 
 -export([start/2, stop/1, modules/0]).
 
--include("../include/erlvolt.hrl").
+-include("erlvolt.hrl").
+-include("erlvolt_internal.hrl").
 
 %% @spec start(any(),any()) -> 'ignore' | {'error',any()} | {'ok',pid()}
 start(_Type, _StartArgs) ->

@@ -1,12 +1,15 @@
-voltdb-client-erlang Erlvolt 0.3.1/beta
+voltdb-client-erlang Erlvolt 0.3.3/beta
 =======================================
 
-**Release: 'Erlvolt 0.3.1/beta'**  
+**Release: 'Erlvolt 0.3.3/beta'**  
 **Author: H. Diedrich**  
 **Production: Eonblast Corporation**  
 **Copyright: (c) 2013 VoltDB, Inc**  
 **Licence: MIT**  
 **Date: 4 Feb 2013**  
+
+**VoltDB: 2.8, 3.0**
+**Erlang: R15B03, R16 RC**
 
 This is an [Erlang](http://www.erlang.org) [VoltDB](hhtp://www.voltdb.com) driver provided by [Eonblast](http://www.eonblast.com). It is [easy][Samples] to use but provides strong [connection pooling][Adding_a_Pool] and a broad array of [options][options]. It is optimized for a central node architecture and super high velocity OLTP.
 
@@ -123,7 +126,7 @@ This is a hello world program. Follow the steps below to try it out.
     
     -module(hello).
     -export([run/0]).
-    -import(erlvolt).
+    
     -include("erlvolt.hrl").
     
     run() ->

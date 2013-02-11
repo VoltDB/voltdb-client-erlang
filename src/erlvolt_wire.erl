@@ -62,7 +62,7 @@
 %%%                                                                         %%%
 %%% You will see this response, 'Hello, world!' in Swedish:                 %%%
 %%%                                                                         %%%
-%%%     Hej vŠrlden!                                                        %%%
+%%%     Hej vÃ¤rlden!                                                        %%%
 %%%                                                                         %%%
 %%% The hello world source is found in examples/hello_plus.erl              %%%
 %%%                                                                         %%%
@@ -78,7 +78,7 @@
 
 -module(erlvolt_wire).
 
--vsn("0.3/beta   ").
+-vsn("0.3/beta").
 -author("H. Diedrich <hd2010@eonblast.com>").
 -license("MIT - http://www.opensource.org/licenses/mit-license.php").
 -copyright("(c) 2010-12 VoltDB, LLC - http://www.voltdb.com").
@@ -91,11 +91,9 @@
 
 %%%-------------------------------------------------------------------------%%%
 
--include("../include/erlvolt.hrl").
--include("../include/erlvolt_wire.hrl").
-
--import(lists, [reverse/1]).
--import(ets).
+-include("erlvolt.hrl").
+-include("erlvolt_internal.hrl").
+-include("erlvolt_wire.hrl").
 
 -export([
             banner/0,
@@ -1617,6 +1615,12 @@ get_table_list({ voltresponse, _, Tables }) ->
 
 %%%----------------------------------------------------------------------------
 %%% @doc Get a row out of a given table, by index number. First == 1.
+%% @spec get_row(volttable(),any()) -> throw(empty_result_table)
+
+get_row({ volttable, _, _, []}, _) ->
+
+    throw(empty_result_table);
+
 %% @spec get_row(volttable(),pos_integer()) -> voltrow()
 
 get_row({ volttable, _, _, List}, Pos) when is_list(List) ->
@@ -2566,7 +2570,7 @@ erl_response(W) ->
       HasSerializedException:1/integer,
       HasStatusString:1/integer,
       _:5/integer,
-      Status:8,
+      Status:8/signed,
       AfterStatusByte/binary>> = AfterHeader,
 
     % optional status string
@@ -2873,14 +2877,14 @@ banner() -> banner(?EXPLAIN).
 banner(Message) ->
     io:format("---------------------------------------------------------------------------~n"),
     io:format("                                             %                             ~n"),
-    io:format("             %%%%% %%%%%  °%%  °%%   %%°  °%%%   °%%   %%%%%%              ~n"),
+    io:format("             %%%%% %%%%%  Â°%%  Â°%%   %%Â°  Â°%%%   Â°%%   %%%%%%              ~n"),
     io:format("             %%%   %%  %%  %%    %%  %  %%   %%%  %%     %%                ~n"),
-    io:format("             %%    %%%%%°  %%  %  %%%   %%%   %%  %%  %  %%                ~n"),
-    io:format("             %%%%% %%  %%  %%%%%   %      %%% °   %%%%%  %%                ~n"),
+    io:format("             %%    %%%%%Â°  %%  %  %%%   %%%   %%  %%  %  %%                ~n"),
+    io:format("             %%%%% %%  %%  %%%%%   %      %%% Â°   %%%%%  %%                ~n"),
     io:format("                                          %                                ~n"),
     io:format("---------------------------------------------------------------------------~n"),
     io:format("~s ~s - ~s~n",[?LIBRARY, ?VERSION, Message]),
     ok.
 
 
-%%%-----------------------------------°%°-----------------------------------%%%
+%%%-----------------------------------Â°%Â°-----------------------------------%%%

@@ -147,7 +147,8 @@
         ]).
 
 % for record and constant defines
--include("../include/erlvolt.hrl").
+-include("erlvolt.hrl").
+-include("erlvolt_internal.hrl").
 
 %% @doc Start the Erlvolt application.
 %%
@@ -678,7 +679,7 @@ call_procedure_monitored(Slot, Proc, Param, Sync, Care, SendTimeout, ReceiveTime
         {'DOWN', Mref, process, WPid, normal} ->
             nil;
         {'DOWN', Mref, process, WPid, Reason1} ->
-            exit(worker_crashed_at_shutdown, Reason1)
+            exit({worker_crashed_at_shutdown, Reason1})
         after 0 -> nil
     end,
 

@@ -91,13 +91,16 @@
 -export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2]).
 -export([terminate/2, code_change/3]).
 
--export([test/0, add_pool/1, drain_pool/2, close_pool/3, pools/0,
+-export([test/0,
+        pools/0, add_pool/1, drain_pool/2,
+        close_pools/0, close_pools/2, close_pool/3,
         add_connections/2,
         get_connections/1, get_connection/1,
         get_slot/1, get_slot_blocking/2, create_slot_warrant/1,
         pass_slot/1, replace_connection/2]).
 
--include("../include/erlvolt.hrl").
+-include("erlvolt.hrl").
+-include("erlvolt_internal.hrl").
 
 -record(state, {pools}).
 
@@ -141,6 +144,14 @@ close_pool(PoolId, DrainWait, CloseWait) ->
     receive
         R -> R
     end.
+
+%% @spec close_pools() -> list()
+close_pools() ->
+    close_pools(500, 1000).
+
+%% @spec close_pools(integer(), integer()) -> list()
+close_pools(DrainWait, CloseWait) ->
+    [ close_pool(Pool#pool.pool_id, DrainWait, CloseWait) || Pool <- pools() ].
 
 %% @spec add_connections(any(),maybe_improper_list()) -> any()
 add_connections(PoolId, Conns) when is_list(Conns) ->

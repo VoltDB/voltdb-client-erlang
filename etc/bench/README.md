@@ -1,14 +1,14 @@
 Benchmarks
 ==========
 
-**voltdb-client-erlang Erlvolt 0.3.0**
+**voltdb-client-erlang Erlvolt 0.3**  
 
-**Release: 'Erlvolt 0.3.0'**  
+**Release: 'Erlvolt 0.3.2'**  
 **Author: H. Diedrich**  
 **Production: Eonblast Corporation**  
 **Copyright: (c) 2013 VoltDB, Inc**  
 **Licence: MIT**  
-**Date: Jan 31 2013**
+**Date: 31 Jan 2013**
 
 
 Quick Start
@@ -23,7 +23,7 @@ Start the Voter database and run a benchmark client on local host:
 Quick Read
 ----------
 
-For reference benchmarks done in the EC2 cloud, see doc/BENCHMARKS.md or html.
+For a reference benchmark done in the EC2 cloud, see doc/BENCHMARK1.md or html.
 
 Usage
 -----
@@ -360,4 +360,4 @@ online:  http://voltdb.com/downloads/documentation/GettingStarted.pdf.
 
 -------------------------------------------------------------------------
 
-/hd 3 feb 13
+/hd 31 jan 13

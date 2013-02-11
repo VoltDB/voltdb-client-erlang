@@ -150,7 +150,7 @@
 -module(voter).
 -export([run/0, run/1,
 	 prep_voter/1, vote/1, voter_return_text/1]).
--import(erlvolt).
+
 -include("erlvolt.hrl").
 
 %% Voter return values

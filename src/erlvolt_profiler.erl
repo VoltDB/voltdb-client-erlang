@@ -98,8 +98,8 @@
         dump/1, waitpending/1, waitqueued/1]).
 -endif.
 
--include("../include/erlvolt.hrl").
-
+-include("erlvolt.hrl").
+-include("erlvolt_internal.hrl").
 
 % -record(state, {now,lap}).
 

@@ -70,7 +70,7 @@
 %%%     V.   receive                                                        %%%
 %%%     ----------------------------------------------------------------    %%%
 %%%     .... Hello World!                                                   %%%
-%%%     .... Hej vŠrlden!                                                   %%%
+%%%     .... Hej vÃ¤rlden!                                                   %%%
 %%%     .... Hola mundo!                                                    %%%
 %%%     .... Hallo Welt!                                                    %%%
 %%%     .... Hello wereld!                                                  %%%
@@ -98,7 +98,7 @@
 
 -module(parallel).
 -export([run/0]).
--import(erlvolt).
+
 -include("erlvolt.hrl").
 
 run() ->
@@ -125,16 +125,16 @@ run() ->
     %%%
 
     io:format("III. insert samples~n"),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Hello", "World", "English"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Hej", "världen", "Swedish"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Hola", "mundo", "Spanish"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Hallo", "Welt", "German"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Hello", "wereld", "Dutch"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Salut", "tout le monde", "French"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Ciao", "mondo", "Italian"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Go'", "vIvan", "Klingon"]),
-    erlvolt:call_procedure(hello_pool, "Insert", ["Aiya", "arda", "Quenya"]),
-    erlvolt:call_procedure(hello_pool, "Insert", [":-)", "(+)", "Smiley"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["English", "Hello", "World"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Swedish", "Hej", "vâ€°rlden"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Spanish", "Hola", "mundo"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["German", "Hallo", "Welt"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Dutch", "Hello", "wereld"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["French", "Salut", "tout le monde"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Italian", "Ciao", "mondo"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Klingon", "Go'", "vIvan"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Quenya", "Aiya", "arda"]),
+    erlvolt:call_procedure(hello_pool, "Insert", ["Smiley", ":-)", "(+)"]),
 
     %%%
     %%% Asynchronous Query
@@ -156,7 +156,7 @@ run() ->
     io:format("-----------------------------------------------------------------------~n"),
 
     [ receive
-        ?ERLVOLT_ERROR_MESSAGE("Procedure Select was not found") ->
+        ?VOLT_ERROR_MESSAGE("Procedure Select was not found") ->
             io:format("~nRunning the right database? (cd voltdb/doc/tutorials/hello && ./run.sh)~n~n");
 
         Result ->

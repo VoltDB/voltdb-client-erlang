@@ -101,7 +101,8 @@
     get_conn_mgr/0
     ]).
 
--include("../include/erlvolt.hrl").
+-include("erlvolt.hrl").
+-include("erlvolt_internal.hrl").
 
 %% @private This is the start function of the supervised child process.
 %% It watches the socket and handles the async writes and reads.
@@ -205,7 +206,7 @@ tx_loop({PoolId, ConnId, Socket, Drainer, DrainWait, Proceed, Overhead}=Anchor,{
             ?ERLVOLT_PROFILER_COUNT_PENDING(),
             % alternate: CallId = <<ConnId:32, CallNo:32>>, % 2^32 = ~4G*
             %% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            SentAck = erlvolt_wire:callProcedure(ConnId, Socket, ProcName, Args, CallId),
+            SentAck = erlvolt_wire:call_procedure(ConnId, Socket, ProcName, Args, CallId),
             %% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             % Note: SentAck is not from the server but only acks the sending went ok.
             case SentAck of
@@ -225,7 +226,7 @@ tx_loop({PoolId, ConnId, Socket, Drainer, DrainWait, Proceed, Overhead}=Anchor,{
             ?ERLVOLT_PROFILER_COUNT_PENDING(),
             % alternate: CallId = <<ConnId:32, CallNo:32>>, % 2^32 = ~4G*
             %% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            erlvolt_wire:callProcedure(ConnId, Socket, ProcName, Args, CallId),
+            erlvolt_wire:call_procedure(ConnId, Socket, ProcName, Args, CallId),
             %% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             % Ignore SentAck from the sending.
             tx_loop(Anchor, {CallNo+1, RespNo});
@@ -455,7 +456,7 @@ execute(Slot, ProcName, Args, synchronous, SendTimeout, ReceiveTimeout, Deliver)
     %% Note: execute blocks until it receives the SEND-ack from the tx process.
     case execute(Slot, ProcName, Args, asynchronous, SendTimeout, awaitsendack, Deliver) of
 
-        %% sending succeeded (this ok is the ok from erlvolt_wire:callProcedure/5)
+        %% sending succeeded (this ok is the ok from erlvolt_wire:call_procedure/5)
         ok ->
             %% Wait for the server response forked over from tx_loop() and dispatch()
             %% (This processes Pid is sent to the server and parsed out by dispatch())
@@ -470,7 +471,7 @@ execute(Slot, ProcName, Args, synchronous, SendTimeout, ReceiveTimeout, Deliver)
                     exit(erlvolt_no_response)
             end;
 
-        %% problem sending. Will be: {error, Reason}, coming from erlvolt_wire:callProcedure/5
+        %% problem sending. Will be: {error, Reason}, coming from erlvolt_wire:call_procedure/5
         Else ->
             erlvolt:error("erlvolt_conn:execute could not execute: ~w", [Else]),
             Else
@@ -480,7 +481,7 @@ execute(Slot, ProcName, Args, synchronous, SendTimeout, ReceiveTimeout, Deliver)
 %% This function is called by the monitored worker process or by the user process.
 %% It communicates with
 %% the socket-dedicated connection process. This function returns the
-%% result from  erlvolt_wire:callProcedure/5, ok | {error, Reason} or
+%% result from  erlvolt_wire:call_procedure/5, ok | {error, Reason} or
 %% exits with missing_internal_sent_ok.
 %% @spec execute([binary() | maybe_improper_list() | #erlvolt_slot{},...]) -> any()
 
@@ -501,7 +502,7 @@ execute(Slot, ProcName, Args, asynchronous, SendTimeout, awaitsendack, Deliver)
     %% Receive Send-Ack from connection socket process, and return it.
     %% note: this is NOT ANY response from the VoltDB server. It is only
     %% the ok for the {call..}. More to the point the return value
-    %% proper from erlvolt_wire:callProcedure/5, ok | {error, Reason}.
+    %% proper from erlvolt_wire:call_procedure/5, ok | {error, Reason}.
     receive
 
         SentAck ->
