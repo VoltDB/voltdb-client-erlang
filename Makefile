@@ -17,7 +17,7 @@
 ###    Erlvolt 0.3/beta    - Erlang VoltDB client API.                      ###
 ###                                                                         ###
 ###    This file is part of VoltDB.                                         ###
-###    Copyright (C) 2008-2016 VoltDB, LLC http://www.voltdb.com            ###
+###    Copyright (C) 2008-2017 VoltDB Inc. http://www.voltdb.com            ###
 ###    Author H. Diedrich <hd2012@eonblast.com> http://www.eonblast.com     ###
 ###                                                                         ###
 ### Permission is hereby granted, free of charge,  to any person obtaining  ###
