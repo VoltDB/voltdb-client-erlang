@@ -121,7 +121,7 @@ app: ebin/$(PKGNAME).app
 
 ebin/$(PKGNAME).app: src/$(PKGNAME).app.src
 	@mkdir -p ebin
-	@sed -e 's/modules, \[\]/{modules, [$(MODULES)]}/;s/%MAKETIME%/$(MAKETIME)/' < $< > $@
+	@sed -e 's/modules, \[\]/modules, [$(MODULES)]/;s/%MAKETIME%/$(MAKETIME)/' < $< > $@
 
 #
 # Hello variants
