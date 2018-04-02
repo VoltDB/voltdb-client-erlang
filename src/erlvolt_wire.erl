@@ -827,7 +827,6 @@ volt_decimal(E) when (is_integer(E) or is_float(E)), E >= ?VOLT_DECIMAL_MIN,
 
     D = E * ?VOLT_DECIMALS_SCALESHIFT,
     T = trunc(D),
-    if D /= T -> throw(loosing_precision); true -> nil end, %%% @doc will not happen.
 
     ?VOLT_DECIMAL_BINARY_TYPE(T).
 
